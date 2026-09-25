@@ -1449,9 +1449,178 @@
           animation: none;
         }
       }
+
+      /* ═══════════════ Access gate ═══════════════ */
+      .gate {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: radial-gradient(
+          circle at 50% 34%,
+          #2a1d33 0%,
+          #1a1520 50%,
+          #100b16 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .gate.unlocked {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s ease;
+      }
+      body.locked {
+        overflow: hidden;
+      }
+      .gate-card {
+        width: 100%;
+        max-width: 420px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .gate-wordmark {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 30px;
+        letter-spacing: -0.01em;
+        color: var(--fg);
+        line-height: 1.05;
+        margin-bottom: 6px;
+      }
+      .gate-wordmark em {
+        font-style: italic;
+        font-weight: 600;
+        color: var(--gold);
+      }
+      .gate-eyebrow {
+        font-family: var(--font-sans);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--accent-hover);
+        margin-bottom: 26px;
+      }
+      .gate-rule {
+        width: 44px;
+        height: 3px;
+        background: var(--accent);
+        margin: 0 auto 26px;
+      }
+      .gate-sub {
+        font-size: 13.5px;
+        color: var(--fg-muted);
+        line-height: 1.6;
+        max-width: 34ch;
+        margin-bottom: 26px;
+      }
+      .gate-form {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+        max-width: 380px;
+      }
+      .gate-form input {
+        flex: 1;
+        font-family: var(--font-sans);
+        font-size: 14px;
+        color: var(--fg);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 6px;
+        padding: 12px 14px;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .gate-form input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
+      }
+      .gate-form input::placeholder {
+        color: var(--fg-dim);
+      }
+      .gate-form button {
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #fff;
+        background: var(--accent);
+        border: none;
+        border-radius: 6px;
+        padding: 12px 22px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .gate-form button:hover {
+        background: var(--accent-hover);
+      }
+      .gate-err {
+        font-size: 12.5px;
+        color: var(--accent-hover);
+        margin-top: 14px;
+        min-height: 16px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .gate-err.show {
+        opacity: 1;
+      }
+      .gate-card.shake {
+        animation: gate-shake 0.4s;
+      }
+      @keyframes gate-shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        20% {
+          transform: translateX(-8px);
+        }
+        40% {
+          transform: translateX(8px);
+        }
+        60% {
+          transform: translateX(-5px);
+        }
+        80% {
+          transform: translateX(5px);
+        }
+      }
     </style>
   </head>
-  <body>
+  <body class="locked">
+    <!-- ══════════ ACCESS GATE ══════════ -->
+    <div id="gate" class="gate">
+      <div class="gate-card">
+        <p class="gate-wordmark">The House <em>Experience</em></p>
+        <p class="gate-eyebrow">House Seats Presents</p>
+        <div class="gate-rule"></div>
+        <p class="gate-sub">
+          A strategic plan for the next evolution of the brand. Enter the access
+          code to continue.
+        </p>
+        <form id="gateForm" class="gate-form" autocomplete="off">
+          <input
+            id="gateInput"
+            type="password"
+            placeholder="Access code"
+            aria-label="Access code"
+            autocomplete="off"
+          />
+          <button type="submit">Enter</button>
+        </form>
+        <p id="gateErr" class="gate-err" aria-live="polite"></p>
+      </div>
+    </div>
+
     <div class="gallery">
       <canvas id="scene"></canvas>
       <div class="scrim" id="scrim"></div>
@@ -1516,6 +1685,61 @@
     </div>
 
     <script>
+      /* ── access gate ── */
+      (function () {
+        var PASS = "houseseats2027";
+        var KEY = "hsp_proposal_unlocked";
+        var gate = document.getElementById("gate");
+        var form = document.getElementById("gateForm");
+        var input = document.getElementById("gateInput");
+        var err = document.getElementById("gateErr");
+        var card = gate ? gate.querySelector(".gate-card") : null;
+        function unlock() {
+          if (!gate) return;
+          gate.classList.add("unlocked");
+          document.body.classList.remove("locked");
+          setTimeout(function () {
+            if (gate && gate.parentNode) gate.parentNode.removeChild(gate);
+          }, 650);
+        }
+        // ?print or ?open bypasses the gate (for exporting / sharing openly)
+        if (window.location.search.indexOf("print") !== -1) {
+          unlock();
+          return;
+        }
+        try {
+          if (sessionStorage.getItem(KEY) === "1") {
+            unlock();
+            return;
+          }
+        } catch (e) {}
+        if (input)
+          setTimeout(function () {
+            input.focus();
+          }, 100);
+        if (form) {
+          form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            var val = (input.value || "").trim().toLowerCase();
+            if (val === PASS) {
+              try {
+                sessionStorage.setItem(KEY, "1");
+              } catch (e) {}
+              unlock();
+            } else {
+              err.textContent = "That code isn't right. Try again.";
+              err.classList.add("show");
+              if (card) {
+                card.classList.remove("shake");
+                void card.offsetWidth;
+                card.classList.add("shake");
+              }
+              input.select();
+            }
+          });
+        }
+      })();
+
       (function () {
         "use strict";
         var reduce = window.matchMedia(
