@@ -144,11 +144,8 @@
         z-index: 3;
         width: min(620px, 62vw);
         text-align: left;
-        transition:
-          left 0.5s var(--ease),
-          right 0.5s var(--ease),
-          top 0.5s var(--ease),
-          transform 0.5s var(--ease);
+        /* no positional transition — the block repositions instantly while it's
+           faded out, so scenes animate IN PLACE rather than sliding across */
       }
       /* default = center-left, vertically centered */
       .copy.layout-left {
