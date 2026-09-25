@@ -1050,6 +1050,78 @@
         transform-origin: top left;
         pointer-events: none;
       }
+      /* ── before → after rebrand compare (the vision / umbrella) ── */
+      .c-elevate {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .c-elevate .before {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .c-shot {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+        position: relative;
+      }
+      .c-shot img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .c-shot .tag {
+        position: absolute;
+        left: 8px;
+        top: 8px;
+        font-family: var(--font-sans);
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--fg);
+        background: rgba(16, 11, 20, 0.72);
+        padding: 3px 8px;
+        border-radius: 4px;
+      }
+      /* the two dated sites — small, muted */
+      .c-elevate .before .c-shot {
+        width: 210px;
+        height: 118px;
+        filter: saturate(0.85);
+      }
+      /* the elevated result — larger, gold-framed, the hero of the compare */
+      .c-elevate .after .c-shot {
+        width: 440px;
+        height: 264px;
+        border-color: rgba(244, 197, 106, 0.5);
+        box-shadow:
+          0 0 0 1px rgba(244, 197, 106, 0.4),
+          0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+      .c-elevate .after .tag {
+        color: var(--gold);
+        border: 1px solid rgba(244, 197, 106, 0.4);
+      }
+      .c-elevate .xarrow {
+        font-size: 24px;
+        color: var(--accent-hover);
+        flex: none;
+      }
+      .c-elevate .after .cap {
+        margin-top: 8px;
+        font-family: var(--font-sans);
+        font-size: 11px;
+        color: var(--fg-muted);
+        text-align: center;
+      }
 
       /* per-scene reveal — soft fade + gentle rise; also fades OUT on exit */
       /* resting (hidden) state — quick, uniform fade-down on EXIT */
@@ -1818,11 +1890,11 @@
             flourish: ["warmth"],
             content:
               '<div class="c-order">' +
-              '<div class="c-ord"><span class="n">01</span><span class="t">The booking &mdash; the goal</span></div>' +
-              '<div class="c-ord"><span class="n">02</span><span class="t">On the bill &mdash; the product</span></div>' +
-              '<div class="c-ord"><span class="n">03</span><span class="t">The four acts</span></div>' +
-              '<div class="c-ord"><span class="n">04</span><span class="t">The box office</span></div>' +
-              '<div class="c-ord"><span class="n">05</span><span class="t">The set design</span></div>' +
+              '<div class="c-ord"><span class="n">01</span><span class="t">The vision &mdash; one House Experience</span></div>' +
+              '<div class="c-ord"><span class="n">02</span><span class="t">The booking &mdash; the goal</span></div>' +
+              '<div class="c-ord"><span class="n">03</span><span class="t">On the bill &mdash; Presents</span></div>' +
+              '<div class="c-ord"><span class="n">04</span><span class="t">The four acts</span></div>' +
+              '<div class="c-ord"><span class="n">05</span><span class="t">The box office</span></div>' +
               '<div class="c-ord"><span class="n">06</span><span class="t">The house &mdash; the funnel</span></div>' +
               '<div class="c-ord"><span class="n">07</span><span class="t">The preview &mdash; Oct 25</span></div>' +
               '<div class="c-ord"><span class="n">08</span><span class="t">The production schedule</span></div>' +
@@ -1833,7 +1905,28 @@
               '<div class="c-ord"><span class="n">13</span><span class="t">Curtain call</span></div>' +
               "</div>",
           },
-          // 3 — THE BOOKING (the goal)
+          // 3 — THE VISION (the umbrella: one brand, three tiers) + rebrand compare
+          {
+            kind: "vision",
+            layout: "center",
+            art: "assets/scenes/blueprint.png",
+            eyebrow: "The Vision",
+            title: "Three properties. <em>One House Experience.</em>",
+            caption:
+              "House Seats and House Eats are dated today. We elevate them into one brand &mdash; the look and quality of House Seats Presents, the design already built &mdash; with Presents the front door, House Seats and House Eats the rooms behind it.",
+            palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-elevate">' +
+              '<div class="before">' +
+              '<div class="c-shot"><span class="tag">House Seats · today</span><img src="assets/houseseats-current.png" alt="Current House Seats site" loading="lazy" /></div>' +
+              '<div class="c-shot"><span class="tag">House Eats · today</span><img src="assets/houseeats-current.png" alt="Current House Eats site" loading="lazy" /></div>' +
+              "</div>" +
+              '<span class="xarrow">&rarr;</span>' +
+              '<div class="after"><div class="c-shot"><span class="tag">The House Experience</span><img src="assets/presents-current.png" alt="Elevated House Seats Presents design" loading="lazy" /></div><div class="cap">The elevated design, already built &mdash; the standard for all three tiers.</div></div>' +
+              "</div>",
+          },
+          // 4 — THE BOOKING (the goal)
           {
             kind: "booking",
             layout: "right",
@@ -1853,26 +1946,25 @@
               '<tr class="total"><td>Annualized</td><td class="n accent">$300,000</td></tr>' +
               "</tbody></table>",
           },
-          // 4 — ON THE BILL (the product)
+          // 5 — ON THE BILL (Presents, the first release) + live POC
           {
             kind: "product",
             layout: "left",
             art: "assets/scenes/newsstand.png",
-            eyebrow: "On the Bill · What Members Get",
+            eyebrow: "On the Bill · Presents",
             title: "A weekly issue worth <em>showing up for</em>.",
             caption:
-              "Weekly editorial &mdash; a magazine, not a coupon book. The reason 5,000 members subscribe and renew.",
+              "House Seats Presents is the first release &mdash; a weekly editorial membership, a magazine, not a coupon book. It&rsquo;s already staged and test-ready.",
             palette: ["#dc2626", "#f4c56a", "#c9a0ff"],
             flourish: ["warmth"],
             content:
-              '<div class="c-mast">' +
-              '<div class="c-msec"><span class="k">Cover Story</span><span class="t">The new era of Vegas entertainment</span></div>' +
-              '<div class="c-msec"><span class="k">Culture</span><span class="t">The week ahead, on &amp; off the Strip</span></div>' +
-              '<div class="c-msec"><span class="k">Nightlife</span><span class="t">Residencies, rooms &amp; late nights</span></div>' +
-              '<div class="c-msec"><span class="k">Artists</span><span class="t">Backstage with the headliners</span></div>' +
+              '<div class="c-poc"><span class="live">Live</span><span>Proof of concept &mdash;</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
+              '<div class="c-live">' +
+              '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
+              '<div class="win"><iframe src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
               "</div>",
           },
-          // 5 — THE FOUR ACTS (the arc)
+          // 6 — THE FOUR ACTS (the arc)
           {
             kind: "arc",
             layout: "left",
@@ -1891,7 +1983,7 @@
               '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="m">Every city<small>the tour</small></span></div>' +
               "</div>",
           },
-          // 6 — THE BOX OFFICE (how the money compounds)
+          // 7 — THE BOX OFFICE (how the money compounds)
           {
             kind: "boxoffice",
             layout: "right",
@@ -1908,25 +2000,6 @@
               '<div class="c-metric"><div class="v accent">3–5×</div><div class="l">Revenue acts by yr 3</div></div>' +
               '<div class="c-metric"><div class="v">19k+</div><div class="l">Combined audience</div></div>' +
               '<div class="c-metric"><div class="v gold">National</div><div class="l">Brand outcome</div></div>' +
-              "</div>",
-          },
-          // 7 — THE SET DESIGN (two sets into one) + live POC
-          {
-            kind: "setdesign",
-            layout: "center",
-            art: "assets/scenes/blueprint.png",
-            eyebrow: "The Set Design",
-            title:
-              "Two dated sets &mdash; <em>restaged as one enterprise</em>.",
-            caption:
-              "House Seats and House Eats are two separate, aging properties today. We keep everything the audience loves and rebuild them into one House Experience &mdash; and the foundation is <strong>already staged and test-ready.</strong>",
-            palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
-            flourish: ["warmth"],
-            content:
-              '<div class="c-poc"><span class="live">Live</span><span>Proof of concept &mdash;</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
-              '<div class="c-live">' +
-              '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
-              '<div class="win"><iframe src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
               "</div>",
           },
           // 8 — THE HOUSE (conversion funnel)
