@@ -2478,13 +2478,14 @@
           };
         }
 
-        function paintImage(s, t) {
+        function paintImage(s, t, px) {
           var img = s._img;
           // per-scene local time so the pan/zoom starts fresh for each scene
           var lt = t - (s._enterT || 0);
           if (lt < 0) lt = 0;
           var b = coverBox(img.naturalWidth, img.naturalHeight, lt);
-          ctx.drawImage(img, b.ox, b.oy, b.dw, b.dh);
+          var dx = px || 0;
+          ctx.drawImage(img, b.ox + dx, b.oy, b.dw, b.dh);
           s._box = b; // remember so layers share the same fit
         }
 
@@ -2600,9 +2601,9 @@
         var lastNow = startT;
         var FADE_MS = 1400; // crossfade duration, time-based (frame-rate safe)
 
-        function drawScene(s, t) {
+        function drawScene(s, t, px) {
           if (s._img) {
-            paintImage(s, t);
+            paintImage(s, t, px);
             (s.layers || []).forEach(function (L) {
               paintLayer(s, L, t);
             });
@@ -2641,10 +2642,17 @@
           // OUTGOING scene on top fading away. Incoming is never dimmed, so
           // there's no dark dip in the middle of the crossfade.
           if (fade < 1 && prev >= 0) {
+            var e = ease(fade);
+            // subtle parallax: incoming glides in from the right toward 0,
+            // outgoing drifts off to the left — feels like moving THROUGH the
+            // scenes rather than a hard cut. PX = max drift in px.
+            var PX = 90;
+            var pxIn = (1 - e) * PX; // +PX → 0
+            var pxOut = -e * PX * 0.6; // 0 → small left drift
             ctx.globalAlpha = 1;
-            drawScene(SCENES[cur], t);
-            ctx.globalAlpha = 1 - ease(fade);
-            drawScene(SCENES[prev], t);
+            drawScene(SCENES[cur], t, pxIn);
+            ctx.globalAlpha = 1 - e;
+            drawScene(SCENES[prev], t, pxOut);
             ctx.globalAlpha = 1;
             // time-based advance (frame-rate independent)
             fade += reduce ? 1 : dt / FADE_MS;
@@ -2767,18 +2775,21 @@
         function go(i) {
           i = Math.max(0, Math.min(i, SCENES.length - 1));
           if (i === cur) return;
-          // 1) fade the current copy OUT
+          // 1) start the BACKGROUND crossfade immediately (feels responsive —
+          //    the image begins moving the instant you press, like parallax)
+          prev = cur;
+          cur = i;
+          fade = 0;
+          SCENES[cur]._enterT = performance.now() - startT;
+          // 2) fade the current copy OUT right away…
           elCopy.classList.remove("show");
-          // 2) after it clears, swap the scene (canvas cross-fades) + fade copy IN
+          // 3) …and swap + reveal the new copy after a short beat, so it lands
+          //    partway INTO the background crossfade (overlapping, not sequential)
           setTimeout(
             function () {
-              prev = cur;
-              cur = i;
-              fade = 0;
-              SCENES[cur]._enterT = performance.now() - startT;
               renderCopy(cur);
             },
-            reduce ? 0 : 480,
+            reduce ? 0 : 260,
           );
         }
 
