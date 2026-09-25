@@ -59,7 +59,8 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        transition: background 0.5s var(--ease);
+        /* opacity is driven by JS in sync with the canvas crossfade so the
+           readability scrim fades WITH the image (no separate flash) */
         background:
           linear-gradient(
             to right,
@@ -2600,6 +2601,8 @@
         var startT = performance.now();
         var lastNow = startT;
         var FADE_MS = 1400; // crossfade duration, time-based (frame-rate safe)
+        var pendingScrim = null; // scrim class to apply at the transition midpoint
+        var scrimSwapped = true; // whether the pending swap has happened yet
 
         function drawScene(s, t, px) {
           if (s._img) {
@@ -2654,11 +2657,24 @@
             ctx.globalAlpha = 1 - e;
             drawScene(SCENES[prev], t, pxOut);
             ctx.globalAlpha = 1;
+            // scrim fades WITH the crossfade: a V-shape (1 → dip → 1) so the
+            // readability overlay never flashes and the class swap is hidden
+            if (elScrim) {
+              var dip = Math.abs(fade - 0.5) * 2; // 1 at ends, 0 at midpoint
+              elScrim.style.opacity = 0.25 + 0.75 * dip;
+              // swap the scrim background at the low point, once
+              if (!scrimSwapped && fade >= 0.5) {
+                elScrim.className =
+                  "scrim" + (pendingScrim ? " " + pendingScrim : "");
+                scrimSwapped = true;
+              }
+            }
             // time-based advance (frame-rate independent)
             fade += reduce ? 1 : dt / FADE_MS;
             if (fade >= 1) {
               fade = 1;
               prev = -1;
+              if (elScrim) elScrim.style.opacity = 1;
             }
           } else {
             drawScene(SCENES[cur], t);
@@ -2730,6 +2746,17 @@
           root.style.setProperty("--n", idx.n);
         }
 
+        function scrimClassFor(lay) {
+          var m = {
+            right: "s-right",
+            center: "s-center",
+            "lower-band": "s-bottom",
+            "lower-left": "s-bottom",
+            hero: "s-hero",
+          };
+          return m[lay] || "";
+        }
+
         function renderCopy(i) {
           var s = SCENES[i];
           elEye.textContent = s.eyebrow;
@@ -2748,17 +2775,13 @@
           }
           elCopy.className =
             "copy" + (s.content ? " has-content" : "") + " layout-" + lay;
-          // scrim direction follows the layout so content always reads
-          var scrimClass = {
-            right: "s-right",
-            center: "s-center",
-            "lower-band": "s-bottom",
-            "lower-left": "s-bottom",
-            hero: "s-hero",
-          };
-          if (elScrim)
+          // NOTE: scrim class is applied by the loop at the crossfade midpoint
+          // (see go/pendingScrim) so it fades with the image instead of flashing.
+          // For the very first render (no transition) apply it directly.
+          if (elScrim && prev < 0) {
             elScrim.className =
-              "scrim" + (scrimClass[lay] ? " " + scrimClass[lay] : "");
+              "scrim" + (scrimClassFor(lay) ? " " + scrimClassFor(lay) : "");
+          }
           elCounter.textContent = pad(i + 1) + " / " + pad(SCENES.length);
           if (progFill)
             progFill.style.height =
@@ -2781,6 +2804,11 @@
           cur = i;
           fade = 0;
           SCENES[cur]._enterT = performance.now() - startT;
+          // queue the incoming scene's scrim; the loop applies it at the
+          // crossfade midpoint (while the scrim is dipped) so it never flashes
+          var nextLay = SCENES[i].layout || "left";
+          pendingScrim = scrimClassFor(nextLay);
+          scrimSwapped = false;
           // 2) fade the current copy OUT right away…
           elCopy.classList.remove("show");
           // 3) …and swap + reveal the new copy after a short beat, so it lands
