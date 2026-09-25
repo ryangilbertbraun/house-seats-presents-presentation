@@ -463,62 +463,72 @@
       .c-table td.n.accent {
         color: var(--accent-hover);
       }
-      /* four-act arc strip */
+      /* four-act arc — four cards, clear hierarchy + a real descriptive line */
       .c-arc {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-        max-width: 720px;
+        gap: 12px;
+        max-width: 760px;
         text-align: left;
       }
       .c-act {
-        padding: 0 16px 4px 16px;
-        border-left: 2px solid rgba(255, 255, 255, 0.12);
         position: relative;
+        display: flex;
+        flex-direction: column;
+        background: rgba(30, 22, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 2px solid rgba(255, 255, 255, 0.18);
+        border-radius: 10px;
+        padding: 14px 14px 13px;
       }
-      .c-act::before {
-        content: "";
-        position: absolute;
-        left: -6px;
-        top: 4px;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: var(--fg-dim);
+      .c-act.on {
+        border-top-color: var(--accent);
       }
-      .c-act.on::before {
-        background: var(--accent);
-        box-shadow: 0 0 10px var(--accent);
+      .c-act.peak {
+        border-top-color: var(--gold);
+        box-shadow: 0 0 0 1px rgba(244, 197, 106, 0.28);
       }
-      .c-act.peak::before {
-        background: var(--gold);
-        box-shadow: 0 0 12px var(--gold);
-      }
+      /* when chip */
       .c-act .w {
-        display: block;
-        font-size: 9.5px;
+        display: inline-block;
+        font-size: 9px;
         font-weight: 700;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--accent-hover);
+        margin-bottom: 8px;
       }
       .c-act.peak .w {
         color: var(--gold);
       }
+      /* title */
       .c-act .t {
         display: block;
         font-family: var(--font-serif);
         font-weight: 700;
-        font-size: 14px;
+        font-size: 15px;
         color: var(--fg);
-        margin: 4px 0 5px;
-        line-height: 1.1;
+        line-height: 1.15;
+        margin-bottom: 6px;
       }
+      /* descriptive line — a real sentence, the fleshed-out bullet */
+      .c-act .d {
+        display: block;
+        font-family: var(--font-sans);
+        font-size: 11px;
+        line-height: 1.45;
+        color: var(--fg-muted);
+        margin-bottom: 12px;
+      }
+      /* metric footer — pinned to the bottom, clearly separated */
       .c-act .m {
         display: block;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         font-family: var(--font-serif);
         font-weight: 800;
-        font-size: 16px;
+        font-size: 17px;
         color: var(--accent-hover);
       }
       .c-act.peak .m {
@@ -527,12 +537,12 @@
       .c-act .m small {
         display: block;
         font-family: var(--font-sans);
-        font-weight: 400;
-        font-size: 9px;
-        letter-spacing: 0.04em;
+        font-weight: 500;
+        font-size: 9.5px;
+        letter-spacing: 0.03em;
         text-transform: uppercase;
         color: var(--fg-dim);
-        margin-top: 2px;
+        margin-top: 3px;
       }
       /* masthead — magazine sections as a clean titled list (no image tiles) */
       .c-mast {
@@ -2069,10 +2079,10 @@
             flourish: ["warmth"],
             content:
               '<div class="c-arc">' +
-              '<div class="c-act on"><span class="w">Act I · Jan \u201927</span><span class="t">Presents</span><span class="m">5,000<small>subs · $300k ARR</small></span></div>' +
-              '<div class="c-act"><span class="w">Act II · 2027</span><span class="t">Restage House Seats</span><span class="m">+5,000<small>restaged core · grow members</small></span></div>' +
-              '<div class="c-act"><span class="w">Act III · 2027 \u2192</span><span class="t">House Eats</span><span class="m">New line<small>commerce</small></span></div>' +
-              '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="m">Every city<small>the tour</small></span></div>' +
+              '<div class="c-act on"><span class="w">Act I · Jan \u201927</span><span class="t">Presents</span><span class="d">Launch the paid weekly membership &mdash; the first release, and the engine that funds everything after it.</span><span class="m">5,000<small>subscribers · $300k ARR</small></span></div>' +
+              '<div class="c-act"><span class="w">Act II · 2027</span><span class="t">Restage House Seats</span><span class="d">Reinvest that revenue to elevate the original House Seats site and grow the core membership.</span><span class="m">+5,000<small>members on a restaged core</small></span></div>' +
+              '<div class="c-act"><span class="w">Act III · 2027 \u2192</span><span class="t">House Eats</span><span class="d">Add the dining &amp; commerce line, turning the audience\u2019s night out into a new revenue stream.</span><span class="m">New line<small>commerce revenue</small></span></div>' +
+              '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="d">Take the proven playbook &mdash; Presents, Seats and Eats under one brand &mdash; on tour, city by city.</span><span class="m">Every city<small>the national tour</small></span></div>' +
               "</div>",
           },
           // 7 — THE BOX OFFICE (how the money compounds)
