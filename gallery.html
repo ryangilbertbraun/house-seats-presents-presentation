@@ -1,0 +1,2502 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The House Experience — Overture</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,800;0,900;1,500;1,700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #140d18;
+        --fg: #f8f5fb;
+        --fg-muted: #b3a2c4;
+        --fg-dim: #8a7fa0;
+        --accent: #dc2626;
+        --accent-hover: #f87171;
+        --gold: #f4c56a;
+        --violet: #c9a0ff;
+        --font-serif: "Playfair Display", Georgia, serif;
+        --font-sans: "Inter", system-ui, sans-serif;
+        --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font-sans);
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* full-screen stage that holds the canvas + the type overlay */
+      .gallery {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+      }
+      #scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* scrim — direction follows the scene layout so content always reads. */
+      .scrim {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        transition: background 0.5s var(--ease);
+        background:
+          linear-gradient(
+            to right,
+            rgba(16, 11, 20, 0.9) 0%,
+            rgba(16, 11, 20, 0.72) 40%,
+            rgba(16, 11, 20, 0.34) 74%,
+            rgba(16, 11, 20, 0.18) 100%
+          ),
+          linear-gradient(
+            to top,
+            rgba(16, 11, 20, 0.7) 0%,
+            rgba(16, 11, 20, 0) 44%
+          );
+      }
+      /* right-weighted (for layout-right) */
+      .scrim.s-right {
+        background:
+          linear-gradient(
+            to left,
+            rgba(16, 11, 20, 0.9) 0%,
+            rgba(16, 11, 20, 0.72) 40%,
+            rgba(16, 11, 20, 0.34) 74%,
+            rgba(16, 11, 20, 0.18) 100%
+          ),
+          linear-gradient(
+            to top,
+            rgba(16, 11, 20, 0.7) 0%,
+            rgba(16, 11, 20, 0) 44%
+          );
+      }
+      /* center vignette (for layout-center) */
+      .scrim.s-center {
+        background: radial-gradient(
+          120% 120% at 50% 48%,
+          rgba(16, 11, 20, 0.82) 0%,
+          rgba(16, 11, 20, 0.66) 44%,
+          rgba(16, 11, 20, 0.34) 80%,
+          rgba(16, 11, 20, 0.22) 100%
+        );
+      }
+      /* bottom-weighted band (for layout-lower-band / lower-left) */
+      .scrim.s-bottom {
+        background: linear-gradient(
+          to top,
+          rgba(16, 11, 20, 0.92) 0%,
+          rgba(16, 11, 20, 0.6) 34%,
+          rgba(16, 11, 20, 0.2) 62%,
+          rgba(16, 11, 20, 0.28) 100%
+        );
+      }
+      /* hero — strong readable pool behind centered title (for layout-hero) */
+      .scrim.s-hero {
+        background:
+          radial-gradient(
+            96% 86% at 50% 42%,
+            rgba(16, 11, 20, 0.94) 0%,
+            rgba(16, 11, 20, 0.82) 42%,
+            rgba(16, 11, 20, 0.5) 72%,
+            rgba(16, 11, 20, 0.24) 100%
+          ),
+          linear-gradient(
+            to bottom,
+            rgba(16, 11, 20, 0.6) 0%,
+            rgba(16, 11, 20, 0.2) 36%,
+            rgba(16, 11, 20, 0.05) 62%
+          );
+      }
+      .grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.055;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      /* editorial type overlay — base; per-scene .layout-* variants reposition
+         it so the walk through Vegas changes rooms each stop. */
+      .copy {
+        position: absolute;
+        z-index: 3;
+        width: min(620px, 62vw);
+        text-align: left;
+        transition:
+          left 0.5s var(--ease),
+          right 0.5s var(--ease),
+          top 0.5s var(--ease),
+          transform 0.5s var(--ease);
+      }
+      /* default = center-left, vertically centered */
+      .copy.layout-left {
+        left: clamp(28px, 7vw, 96px);
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      /* lower-left (title-card feel) */
+      .copy.layout-lower-left {
+        left: clamp(28px, 7vw, 96px);
+        bottom: clamp(70px, 12vh, 130px);
+        top: auto;
+      }
+      /* right column, art breathes on the left */
+      .copy.layout-right {
+        right: clamp(28px, 7vw, 96px);
+        left: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        text-align: right;
+      }
+      .copy.layout-right .eyebrow {
+        flex-direction: row-reverse;
+      }
+      /* RIGHT layout — pin every content component to the right edge, no
+         per-component whitelist. Flex rows end-justify; block/grid boxes get
+         margin-left:auto. This is the single source of truth for right align. */
+      .copy.layout-right .content > * {
+        margin-left: auto;
+        margin-right: 0;
+      }
+      .copy.layout-right .c-metrics,
+      .copy.layout-right .c-arc,
+      .copy.layout-right .c-cards,
+      .copy.layout-right .c-strip,
+      .copy.layout-right .c-funnel,
+      .copy.layout-right .c-mast {
+        justify-content: end;
+      }
+      /* funnel bars taper — keep each bar+meta row pinned to the right edge */
+      .copy.layout-right .c-fstep {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+      }
+      /* dead-center, grand statement */
+      .copy.layout-center {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: min(760px, 82vw);
+      }
+      .copy.layout-center .eyebrow {
+        justify-content: center;
+      }
+      /* CENTER layout — center every content component, no whitelist. */
+      .copy.layout-center .content > * {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .copy.layout-center .c-metrics,
+      .copy.layout-center .c-cards,
+      .copy.layout-center .c-arc,
+      .copy.layout-center .c-strip,
+      .copy.layout-center .c-funnel,
+      .copy.layout-center .c-mast {
+        justify-content: center;
+        margin-top: 26px;
+      }
+      /* lower band across the bottom (wide, for strips) */
+      .copy.layout-lower-band {
+        left: clamp(28px, 7vw, 96px);
+        right: clamp(28px, 7vw, 96px);
+        bottom: clamp(56px, 10vh, 110px);
+        top: auto;
+        width: auto;
+        max-width: none;
+      }
+      /* hero — centered, sits above middle, larger; for the opening title */
+      .copy.layout-hero {
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        width: min(880px, 88vw);
+      }
+      .copy.layout-hero .eyebrow {
+        justify-content: center;
+      }
+      .copy.layout-hero .title {
+        font-size: clamp(38px, 5.4vw, 76px);
+      }
+      .copy.layout-hero .caption {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 640px;
+      }
+      .copy.layout-hero .c-metrics {
+        justify-content: center;
+        margin: 30px auto 0;
+      }
+      .eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--accent-hover);
+        margin-bottom: 14px;
+      }
+      .eyebrow::before {
+        content: "";
+        width: 24px;
+        height: 1.5px;
+        background: var(--accent);
+      }
+      /* centered layouts get a matching line on the other side too */
+      .copy.layout-hero .eyebrow::after,
+      .copy.layout-center .eyebrow::after {
+        content: "";
+        width: 24px;
+        height: 1.5px;
+        background: var(--accent);
+      }
+      .title {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: clamp(28px, 3.6vw, 48px);
+        line-height: 1.08;
+        letter-spacing: -0.01em;
+        color: var(--fg);
+        text-wrap: balance;
+      }
+      .title em {
+        font-style: italic;
+        font-weight: 600;
+        color: var(--gold);
+      }
+      .caption {
+        font-size: clamp(13px, 1.1vw, 15px);
+        color: var(--fg-muted);
+        line-height: 1.6;
+        margin-top: 16px;
+        max-width: 60ch;
+      }
+      .caption strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      /* caption box follows the layout so it lines up with the title, not just
+         text-aligns. (It's a direct child of .copy, not .content.) */
+      .copy.layout-right .caption {
+        margin-left: auto;
+        margin-right: 0;
+      }
+      .copy.layout-center .caption,
+      .copy.layout-hero .caption {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* ── per-scene content panel (metrics, table, arc, strip, etc.) ── */
+      .content {
+        margin-top: 26px;
+      }
+      /* content-bearing scenes get a bit more column width */
+      .copy.has-content {
+        width: min(720px, 72vw);
+      }
+      .c-metrics {
+        display: grid;
+        grid-template-columns: repeat(4, auto);
+        gap: 28px;
+        justify-content: start;
+      }
+      .c-metric .v {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: clamp(22px, 2.6vw, 32px);
+        line-height: 1;
+        color: var(--fg);
+      }
+      .c-metric .v.accent {
+        color: var(--accent-hover);
+      }
+      .c-metric .v.gold {
+        color: var(--gold);
+      }
+      .c-metric .l {
+        font-size: 11px;
+        color: rgba(245, 240, 250, 0.82);
+        font-weight: 500;
+        margin-top: 7px;
+        letter-spacing: 0.02em;
+        text-shadow: 0 1px 6px rgba(16, 11, 20, 0.65);
+      }
+      .c-metric .v {
+        text-shadow: 0 2px 10px rgba(16, 11, 20, 0.6);
+      }
+      /* small glass cards row */
+      .c-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        text-align: left;
+      }
+      .glass {
+        background: rgba(30, 22, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 16px 18px;
+        backdrop-filter: blur(8px);
+      }
+      .glass .k {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .glass h4 {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--fg);
+        margin: 8px 0 5px;
+      }
+      .glass p {
+        font-size: 12px;
+        color: var(--fg-muted);
+        line-height: 1.5;
+      }
+      /* running order — two columns that fill TOP-TO-BOTTOM (col 1 then col 2)
+         so the numbering reads 01→14 down the left, then down the right, and
+         the reveal stagger follows the same order. */
+      .c-order {
+        column-count: 2;
+        column-gap: 34px;
+        max-width: 560px;
+        text-align: left;
+      }
+      .c-ord {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        padding: 9px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+        break-inside: avoid;
+      }
+      .c-ord .n {
+        font-family: var(--font-sans);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--gold);
+        min-width: 22px;
+        font-variant-numeric: tabular-nums;
+      }
+      .c-ord .t {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--fg);
+        line-height: 1.25;
+      }
+      /* benchmark table */
+      .c-table {
+        max-width: 400px;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        text-align: left;
+      }
+      .c-table td {
+        padding: 8px 4px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--fg-muted);
+      }
+      .c-table td.n {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        color: var(--fg);
+      }
+      .c-table tr.total td {
+        border-top: 1px solid rgba(255, 255, 255, 0.16);
+        border-bottom: none;
+        font-weight: 600;
+        color: var(--fg);
+      }
+      .c-table td.n.accent {
+        color: var(--accent-hover);
+      }
+      /* four-act arc strip */
+      .c-arc {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        max-width: 720px;
+        text-align: left;
+      }
+      .c-act {
+        padding: 0 16px 4px 16px;
+        border-left: 2px solid rgba(255, 255, 255, 0.12);
+        position: relative;
+      }
+      .c-act::before {
+        content: "";
+        position: absolute;
+        left: -6px;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--fg-dim);
+      }
+      .c-act.on::before {
+        background: var(--accent);
+        box-shadow: 0 0 10px var(--accent);
+      }
+      .c-act.peak::before {
+        background: var(--gold);
+        box-shadow: 0 0 12px var(--gold);
+      }
+      .c-act .w {
+        display: block;
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent-hover);
+      }
+      .c-act.peak .w {
+        color: var(--gold);
+      }
+      .c-act .t {
+        display: block;
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--fg);
+        margin: 4px 0 5px;
+        line-height: 1.1;
+      }
+      .c-act .m {
+        display: block;
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 16px;
+        color: var(--accent-hover);
+      }
+      .c-act.peak .m {
+        color: var(--gold);
+      }
+      .c-act .m small {
+        display: block;
+        font-family: var(--font-sans);
+        font-weight: 400;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--fg-dim);
+        margin-top: 2px;
+      }
+      /* masthead — magazine sections as a clean titled list (no image tiles) */
+      .c-mast {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        max-width: 460px;
+        text-align: left;
+      }
+      .c-msec {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        padding: 11px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .c-msec .k {
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent-hover);
+        min-width: 78px;
+      }
+      .c-msec .t {
+        font-family: var(--font-serif);
+        font-weight: 500;
+        font-size: 15px;
+        color: var(--fg);
+        line-height: 1.25;
+      }
+      /* editorial strip (product) */
+      .c-strip {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        max-width: 620px;
+        text-align: left;
+      }
+      .c-tile {
+        border-radius: 10px;
+        overflow: hidden;
+        aspect-ratio: 3 / 4;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(160deg, #2a1636, #160d1c);
+      }
+      .c-tile .cap {
+        position: absolute;
+        inset: auto 0 0 0;
+        padding: 16px 10px 9px;
+        background: linear-gradient(
+          to top,
+          rgba(12, 8, 16, 0.92),
+          rgba(12, 8, 16, 0)
+        );
+      }
+      .c-tile .cap .k {
+        display: block;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent-hover);
+        margin-bottom: 3px;
+      }
+      .c-tile .cap .t2 {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 11px;
+        color: #fff;
+        line-height: 1.15;
+      }
+      /* ── timeline (roadmap / next steps) ── */
+      .c-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 640px;
+        text-align: left;
+      }
+      .c-tl {
+        display: grid;
+        grid-template-columns: 132px 1fr;
+        gap: 16px;
+        align-items: baseline;
+      }
+      .c-tl .w {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--accent-hover);
+      }
+      .c-tl.peak .w {
+        color: var(--gold);
+      }
+      .c-tl .t {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--fg);
+      }
+      .c-tl .d {
+        font-size: 11.5px;
+        color: var(--fg-muted);
+        line-height: 1.45;
+        margin-top: 2px;
+      }
+      /* ── budgets (3 scenario cards) ── */
+      .c-budgets {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        max-width: 720px;
+        text-align: left;
+      }
+      .c-bud {
+        background: rgba(30, 22, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 14px 15px;
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .c-bud.rec {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent);
+      }
+      .c-bud .name {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--fg);
+      }
+      .c-bud .price {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 19px;
+        color: var(--fg);
+      }
+      .c-bud .price small {
+        font-family: var(--font-sans);
+        font-weight: 400;
+        font-size: 10px;
+        color: var(--fg-dim);
+      }
+      .c-bud .op {
+        font-size: 10.5px;
+        color: var(--fg-dim);
+      }
+      .c-bud .tag {
+        align-self: flex-start;
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--fg-muted);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        padding: 2px 8px;
+      }
+      .c-bud.rec .tag {
+        color: var(--accent-hover);
+        border-color: var(--accent);
+      }
+      /* ── funnel bars ── */
+      .c-funnel {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        max-width: 560px;
+        text-align: left;
+      }
+      .c-fstep {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .c-fbar {
+        height: 34px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
+      }
+      .c-fmeta {
+        font-size: 11px;
+        color: var(--fg-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      /* ── risk grid ── */
+      .c-risk {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        max-width: 680px;
+        text-align: left;
+      }
+      .c-rrow {
+        display: grid;
+        grid-template-columns: 1.4fr 66px 66px 1.7fr;
+        gap: 12px;
+        align-items: center;
+        background: rgba(30, 22, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 9px 13px;
+        font-size: 11.5px;
+        color: var(--fg-muted);
+      }
+      .c-rrow strong {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      .c-sev {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 3px 7px;
+        border-radius: 4px;
+        text-align: center;
+      }
+      .c-sev.hi {
+        background: rgba(220, 38, 38, 0.16);
+        color: var(--accent-hover);
+      }
+      .c-sev.md {
+        background: rgba(245, 200, 66, 0.14);
+        color: #f5c842;
+      }
+      /* ── governance / two-up cards ── */
+      .c-gov {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        max-width: 680px;
+        text-align: left;
+      }
+      /* ── two-sites → one (set design) ── */
+      .c-sets {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        max-width: 640px;
+        text-align: left;
+      }
+      .c-set {
+        flex: 1;
+        background: rgba(30, 22, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 14px;
+      }
+      .c-set.one {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 1px rgba(201, 160, 255, 0.3);
+      }
+      .c-set .u {
+        font-family: var(--font-sans);
+        font-size: 10px;
+        color: var(--fg-dim);
+      }
+      .c-set .nm {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--fg);
+        margin-top: 4px;
+      }
+      .c-set .st {
+        font-size: 10.5px;
+        color: var(--fg-muted);
+        margin-top: 3px;
+      }
+      .c-arrow {
+        font-size: 22px;
+        color: var(--accent-hover);
+        flex: none;
+      }
+      .c-tile .cap .t {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 11px;
+        color: #fff;
+        line-height: 1.15;
+      }
+
+      /* ── work-order ladder (staged, gated commitments) ── */
+      .c-ladder {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 720px;
+        margin: 0 auto;
+        text-align: left;
+      }
+      .c-wo {
+        display: grid;
+        grid-template-columns: 54px 1fr auto;
+        gap: 16px;
+        align-items: center;
+        background: rgba(30, 22, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 11px 16px;
+      }
+      .c-wo.now {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent);
+      }
+      .c-wo .st {
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      .c-wo .nm {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--fg);
+        line-height: 1.2;
+      }
+      .c-wo .nm small {
+        display: block;
+        font-family: var(--font-sans);
+        font-weight: 400;
+        font-size: 10.5px;
+        color: var(--fg-muted);
+        margin-top: 2px;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      .c-wo .amt {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 15px;
+        color: var(--fg-dim);
+        white-space: nowrap;
+        text-align: right;
+      }
+      .c-wo.now .amt {
+        color: var(--accent-hover);
+      }
+      .c-wo .amt small {
+        display: block;
+        font-family: var(--font-sans);
+        font-weight: 400;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--fg-dim);
+        margin-top: 2px;
+      }
+      /* ── services rate card (addendum) ── */
+      .c-rate {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 40px;
+        row-gap: 0;
+        max-width: 680px;
+        margin: 0 auto;
+        text-align: left;
+      }
+      .c-rrate {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+      }
+      .c-rrate .svc {
+        font-family: var(--font-sans);
+        font-size: 12.5px;
+        color: var(--fg);
+      }
+      .c-rrate .rate {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--gold);
+        white-space: nowrap;
+      }
+      /* ── the ask (single focal card) ── */
+      .c-ask {
+        max-width: 560px;
+        margin: 0 auto;
+        background: rgba(30, 22, 38, 0.55);
+        border: 1px solid var(--accent);
+        box-shadow: 0 0 0 1px var(--accent);
+        border-radius: 14px;
+        padding: 22px 26px;
+        text-align: left;
+      }
+      .c-ask .lead {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 20px;
+        color: var(--fg);
+        line-height: 1.2;
+      }
+      .c-ask .lead em {
+        font-style: italic;
+        color: var(--gold);
+      }
+      .c-ask .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 12px;
+        color: var(--fg-muted);
+      }
+      .c-ask .row b {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      .c-ask a {
+        color: var(--accent-hover);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(248, 113, 113, 0.4);
+      }
+      .c-poc {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--fg-muted);
+      }
+      .c-poc a {
+        color: var(--accent-hover);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(248, 113, 113, 0.4);
+      }
+      .c-poc .live {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #7cdba8;
+      }
+      .c-poc .live::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #7cdba8;
+        box-shadow: 0 0 8px #7cdba8;
+      }
+      /* live embedded preview — a browser-chrome frame around the real POC */
+      .c-live {
+        max-width: 560px;
+        margin: 14px auto 0;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+        background: #0d0912;
+      }
+      .c-live .bar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .c-live .bar i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
+        flex: none;
+      }
+      .c-live .bar .url {
+        margin-left: 8px;
+        font-family: var(--font-sans);
+        font-size: 10px;
+        letter-spacing: 0.02em;
+        color: var(--fg-dim);
+      }
+      .c-live .win {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        background: #0d0912;
+      }
+      /* render the real site at desktop width, scaled down to fit the frame */
+      .c-live iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1280px;
+        height: 800px;
+        border: 0;
+        transform: scale(0.4375);
+        transform-origin: top left;
+        pointer-events: none;
+      }
+
+      /* per-scene reveal — soft fade + gentle rise; also fades OUT on exit */
+      /* resting (hidden) state — quick, uniform fade-down on EXIT */
+      .copy > * {
+        opacity: 0;
+        transform: translateY(14px);
+        transition:
+          opacity 0.32s var(--ease),
+          transform 0.32s var(--ease);
+      }
+      /* enter — slow, staggered graceful rise (overrides the exit timing) */
+      .copy.show > * {
+        opacity: 1;
+        transform: translateY(0);
+        transition:
+          opacity 1.1s var(--ease),
+          transform 1.1s var(--ease);
+      }
+      .copy.show .eyebrow {
+        transition-delay: 0.12s;
+      }
+      .copy.show .title {
+        transition-delay: 0.3s;
+      }
+      .copy.show .caption {
+        transition-delay: 0.54s;
+      }
+      .copy.show .content {
+        transition-delay: 0.76s;
+      }
+      /* stagger the INNER content items so panels build in, not pop in */
+      .content > * > * {
+        opacity: 0;
+        transform: translateY(12px);
+        transition:
+          opacity 0.7s var(--ease),
+          transform 0.7s var(--ease);
+      }
+      .copy.show .content > * > * {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .copy.show .content > * > *:nth-child(1) {
+        transition-delay: 0.6s;
+      }
+      .copy.show .content > * > *:nth-child(2) {
+        transition-delay: 0.66s;
+      }
+      .copy.show .content > * > *:nth-child(3) {
+        transition-delay: 0.72s;
+      }
+      .copy.show .content > * > *:nth-child(4) {
+        transition-delay: 0.78s;
+      }
+      .copy.show .content > * > *:nth-child(5) {
+        transition-delay: 0.84s;
+      }
+      .copy.show .content > * > *:nth-child(6) {
+        transition-delay: 0.9s;
+      }
+      .copy.show .content > * > *:nth-child(7) {
+        transition-delay: 0.96s;
+      }
+      .copy.show .content > * > *:nth-child(8) {
+        transition-delay: 1.02s;
+      }
+      .copy.show .content > * > *:nth-child(9) {
+        transition-delay: 1.08s;
+      }
+      .copy.show .content > * > *:nth-child(10) {
+        transition-delay: 1.14s;
+      }
+      .copy.show .content > * > *:nth-child(11) {
+        transition-delay: 1.2s;
+      }
+      .copy.show .content > * > *:nth-child(12) {
+        transition-delay: 1.26s;
+      }
+      .copy.show .content > * > *:nth-child(13) {
+        transition-delay: 1.32s;
+      }
+      .copy.show .content > * > *:nth-child(14) {
+        transition-delay: 1.38s;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .copy > *,
+        .content > * > * {
+          transition: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      }
+
+      /* slim vertical progress rail — a quiet position indicator, not 15 dots */
+      .progress {
+        position: absolute;
+        right: clamp(22px, 3.4vw, 46px);
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        z-index: 4;
+        padding: 16px 10px;
+        border-radius: 999px;
+        /* subtle vertical scrim so the rail never vanishes into busy art */
+        background: linear-gradient(
+          to bottom,
+          rgba(16, 11, 20, 0) 0%,
+          rgba(16, 11, 20, 0.45) 18%,
+          rgba(16, 11, 20, 0.45) 82%,
+          rgba(16, 11, 20, 0) 100%
+        );
+      }
+      /* small deco diamond caps at each end of the rail */
+      .progress .rail-cap {
+        width: 6px;
+        height: 6px;
+        transform: rotate(45deg);
+        border: 1px solid var(--gold);
+        opacity: 0.7;
+        flex: none;
+      }
+      .progress .rail {
+        position: relative;
+        width: 1.5px;
+        height: clamp(120px, 22vh, 200px);
+        background: rgba(255, 255, 255, 0.16);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .progress .rail .fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 0%;
+        background: var(--gold);
+        border-radius: 2px;
+        transition: height 0.6s var(--ease);
+      }
+      .progress .idx {
+        font-family: var(--font-sans);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: rgba(245, 240, 250, 0.7);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* scene counter + brand */
+      .topbar {
+        position: absolute;
+        top: clamp(22px, 4vw, 40px);
+        left: clamp(28px, 7vw, 110px);
+        right: clamp(24px, 4vw, 54px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 4;
+      }
+      .brand {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 17px;
+        color: var(--fg);
+        letter-spacing: 0.01em;
+      }
+      .brand em {
+        font-style: italic;
+        color: var(--gold);
+      }
+      .counter {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 62px;
+        height: 62px;
+      }
+      /* soft dark disc so the counter reads over any background image */
+      .counter::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(16, 11, 20, 0.72) 0%,
+          rgba(16, 11, 20, 0.4) 60%,
+          rgba(16, 11, 20, 0) 100%
+        );
+      }
+      .deco-emblem {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        color: var(--gold);
+        pointer-events: none;
+      }
+      .counter-num {
+        position: relative;
+        font-family: var(--font-sans);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: var(--fg);
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 1px 6px rgba(16, 11, 20, 0.8);
+      }
+
+      /* down-arrow cue */
+      .cue {
+        position: absolute;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+        z-index: 4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 9px;
+        color: rgba(245, 240, 250, 0.72);
+        font-family: var(--font-sans);
+        font-size: 10.5px;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        text-shadow: 0 1px 8px rgba(16, 11, 20, 0.7);
+        transition: opacity 0.4s;
+      }
+      .cue .chev {
+        width: 18px;
+        height: 18px;
+        border-right: 2px solid var(--gold);
+        border-bottom: 2px solid var(--gold);
+        transform: rotate(45deg);
+        animation: bob 1.8s ease-in-out infinite;
+      }
+      @keyframes bob {
+        0%,
+        100% {
+          transform: rotate(45deg) translate(0, 0);
+          opacity: 0.5;
+        }
+        50% {
+          transform: rotate(45deg) translate(3px, 3px);
+          opacity: 1;
+        }
+      }
+      .cue.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ─────────────────────────────────────────────────────────────
+         MOBILE (<=720px) — Option A: one centered column, every scene fits
+         a phone screen, multi-column data panels collapse to one column.
+         Swipe up/down still advances scenes (existing touch handler).
+         ───────────────────────────────────────────────────────────── */
+      @media (max-width: 720px) {
+        /* uniform dark wash so copy always reads regardless of layout/image */
+        .scrim,
+        .scrim.s-right,
+        .scrim.s-center,
+        .scrim.s-bottom,
+        .scrim.s-hero {
+          background: linear-gradient(
+            to bottom,
+            rgba(16, 11, 20, 0.72) 0%,
+            rgba(16, 11, 20, 0.82) 100%
+          ) !important;
+        }
+        /* one column for EVERY layout — override all the desktop positioning */
+        .copy,
+        .copy.layout-left,
+        .copy.layout-right,
+        .copy.layout-center,
+        .copy.layout-hero,
+        .copy.layout-lower-left,
+        .copy.layout-lower-band {
+          left: 20px !important;
+          right: 20px !important;
+          top: 50% !important;
+          bottom: auto !important;
+          transform: translateY(-50%) !important;
+          width: auto !important;
+          max-width: none !important;
+          text-align: left !important;
+          /* allow tall scenes to scroll inside the viewport */
+          max-height: 82vh;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        .copy.layout-right .eyebrow,
+        .copy.layout-center .eyebrow,
+        .copy.layout-hero .eyebrow {
+          justify-content: flex-start !important;
+          flex-direction: row !important;
+        }
+        /* pin every content box + caption to the left, no auto-centering */
+        .copy .content > *,
+        .copy .caption {
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          justify-content: flex-start !important;
+          text-align: left !important;
+          max-width: none !important;
+        }
+        /* type scale down */
+        .title {
+          font-size: clamp(26px, 8vw, 34px) !important;
+        }
+        .copy.layout-hero .title {
+          font-size: clamp(30px, 10vw, 42px) !important;
+        }
+        .caption {
+          font-size: 13px !important;
+        }
+        /* collapse multi-column data panels to a single column */
+        .c-metrics,
+        .c-strip,
+        .c-arc {
+          grid-template-columns: 1fr 1fr !important;
+          gap: 14px !important;
+        }
+        .c-cards,
+        .c-gov,
+        .c-budgets,
+        .c-order,
+        .c-rate {
+          grid-template-columns: 1fr !important;
+          column-count: 1 !important;
+        }
+        .c-sets {
+          flex-direction: column !important;
+          align-items: stretch !important;
+        }
+        .c-arrow {
+          transform: rotate(90deg);
+          align-self: center;
+        }
+        /* work-order rows: drop the fixed 3-col grid to label / name / amount stack */
+        .c-wo {
+          grid-template-columns: 1fr auto !important;
+          gap: 4px 12px !important;
+        }
+        .c-wo .st {
+          grid-column: 1 / -1;
+        }
+        /* risk rows: stack */
+        .c-rrow {
+          grid-template-columns: 1fr auto auto !important;
+          font-size: 11px !important;
+        }
+        .c-rrow span:last-child {
+          grid-column: 1 / -1;
+        }
+        /* funnel: full width */
+        .c-funnel {
+          max-width: none !important;
+        }
+        .c-fstep {
+          flex-direction: row !important;
+        }
+        /* live preview: shrink to fit */
+        .c-live {
+          max-width: none !important;
+        }
+        .c-live .win {
+          height: 200px;
+        }
+        .c-live iframe {
+          transform: scale(0.26);
+        }
+        /* hide the desktop side rail; keep the counter + swipe cue */
+        .progress {
+          display: none;
+        }
+        .topbar {
+          left: 20px;
+          right: 16px;
+          top: 16px;
+        }
+        .brand {
+          font-size: 14px;
+        }
+        .cue span {
+          /* rename affordance for touch */
+          font-size: 9px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cue .chev {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="gallery">
+      <canvas id="scene"></canvas>
+      <div class="scrim" id="scrim"></div>
+      <div class="grain"></div>
+
+      <div class="topbar">
+        <span class="brand">The House <em>Experience</em></span>
+        <span class="counter">
+          <svg class="deco-emblem" viewBox="0 0 64 64" aria-hidden="true">
+            <circle
+              cx="32"
+              cy="32"
+              r="30"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+              opacity="0.5"
+            />
+            <circle
+              cx="32"
+              cy="32"
+              r="24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="0.6"
+              opacity="0.35"
+            />
+            <g stroke="currentColor" stroke-width="0.8" opacity="0.5">
+              <line x1="32" y1="8" x2="32" y2="16" />
+              <line x1="32" y1="48" x2="32" y2="56" />
+              <line x1="8" y1="32" x2="16" y2="32" />
+              <line x1="48" y1="32" x2="56" y2="32" />
+              <line x1="15" y1="15" x2="21" y2="21" />
+              <line x1="43" y1="43" x2="49" y2="49" />
+              <line x1="49" y1="15" x2="43" y2="21" />
+              <line x1="21" y1="43" x2="15" y2="49" />
+            </g>
+          </svg>
+          <span class="counter-num" id="counter">01 / 05</span>
+        </span>
+      </div>
+
+      <div class="copy" id="copy">
+        <p class="eyebrow" id="eyebrow"></p>
+        <h1 class="title" id="title"></h1>
+        <p class="caption" id="caption"></p>
+        <div class="content" id="content"></div>
+      </div>
+
+      <div class="progress" id="progress">
+        <span class="rail-cap"></span>
+        <span class="idx" id="progIdx">01</span>
+        <span class="rail"><span class="fill" id="progFill"></span></span>
+        <span class="idx" id="progTotal">15</span>
+        <span class="rail-cap"></span>
+      </div>
+
+      <div class="cue" id="cue">
+        <span>Scroll</span>
+        <span class="chev"></span>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+        var reduce = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+
+        // ─────────────────────────────────────────────────────────────
+        // SCENES manifest — the single edit point.
+        // `art` is optional: drop a file in assets/scenes/ and set it here to
+        // replace the procedural placeholder. `kind` picks the placeholder
+        // painter used until then.
+        // ─────────────────────────────────────────────────────────────
+        var SCENES = [
+          // 1 — OVERTURE (title)
+          {
+            kind: "facade",
+            layout: "hero",
+            art: "assets/scenes/facade.png",
+            eyebrow: "Overture",
+            title: "House lights up.<br /><em>Let&rsquo;s start the show.</em>",
+            caption:
+              "14,000 members are already in their seats, ready for what comes next.",
+            palette: ["#dc2626", "#7b3fb0", "#f4c56a"],
+            flourish: ["warmth", "motes"],
+            content:
+              '<div class="c-metrics">' +
+              '<div class="c-metric"><div class="v">Presents</div><div class="l">The opening act</div></div>' +
+              '<div class="c-metric"><div class="v accent">Jan 1</div><div class="l">Curtain up</div></div>' +
+              '<div class="c-metric"><div class="v">4 acts</div><div class="l">The program</div></div>' +
+              '<div class="c-metric"><div class="v gold">The Experience</div><div class="l">The finale</div></div>' +
+              "</div>",
+          },
+          // 2 — THE PROGRAM (running order)
+          {
+            kind: "arc",
+            layout: "left",
+            art: "assets/scenes/playbill.png",
+            eyebrow: "The Program",
+            title: "The running order.",
+            caption:
+              "The whole show, in sequence &mdash; and the one decision on the table tonight. Everything after Stage 1 is approved act by act, so you stay in control.",
+            palette: ["#f4c56a", "#7b3fb0", "#dc2626"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-order">' +
+              '<div class="c-ord"><span class="n">01</span><span class="t">The booking &mdash; the goal</span></div>' +
+              '<div class="c-ord"><span class="n">02</span><span class="t">On the bill &mdash; the product</span></div>' +
+              '<div class="c-ord"><span class="n">03</span><span class="t">The four acts</span></div>' +
+              '<div class="c-ord"><span class="n">04</span><span class="t">The box office</span></div>' +
+              '<div class="c-ord"><span class="n">05</span><span class="t">The set design</span></div>' +
+              '<div class="c-ord"><span class="n">06</span><span class="t">The house &mdash; the funnel</span></div>' +
+              '<div class="c-ord"><span class="n">07</span><span class="t">The preview &mdash; Oct 25</span></div>' +
+              '<div class="c-ord"><span class="n">08</span><span class="t">The production schedule</span></div>' +
+              '<div class="c-ord"><span class="n">09</span><span class="t">Ticket economics</span></div>' +
+              '<div class="c-ord"><span class="n">10</span><span class="t">The work orders</span></div>' +
+              '<div class="c-ord"><span class="n">11</span><span class="t">Stage management &amp; risk</span></div>' +
+              '<div class="c-ord"><span class="n">12</span><span class="t">The ask</span></div>' +
+              '<div class="c-ord"><span class="n">13</span><span class="t">Curtain call</span></div>' +
+              "</div>",
+          },
+          // 3 — THE BOOKING (the goal)
+          {
+            kind: "booking",
+            layout: "right",
+            art: "assets/scenes/boxoffice.png",
+            eyebrow: "The Booking · Act One",
+            title:
+              "Five thousand seats.<br /><em>Sold before we build a thing.</em>",
+            caption:
+              "The goal: 5,000 new paid subscribers &mdash; about 35.7% of the 14,000+ member base. We validate that number with real data in Stage 1, before the build begins.",
+            palette: ["#f4c56a", "#dc2626", "#7b3fb0"],
+            flourish: ["warmth", "motes"],
+            content:
+              '<table class="c-table"><tbody>' +
+              '<tr><td>Presents subscribers</td><td class="n">5,000</td></tr>' +
+              '<tr><td>Price / month</td><td class="n">$5</td></tr>' +
+              '<tr class="total"><td>Target MRR</td><td class="n accent">$25,000</td></tr>' +
+              '<tr class="total"><td>Annualized</td><td class="n accent">$300,000</td></tr>' +
+              "</tbody></table>",
+          },
+          // 4 — ON THE BILL (the product)
+          {
+            kind: "product",
+            layout: "left",
+            art: "assets/scenes/newsstand.png",
+            eyebrow: "On the Bill · What Members Get",
+            title: "A weekly issue worth <em>showing up for</em>.",
+            caption:
+              "Weekly editorial &mdash; a magazine, not a coupon book. The reason 5,000 members subscribe and renew.",
+            palette: ["#dc2626", "#f4c56a", "#c9a0ff"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-mast">' +
+              '<div class="c-msec"><span class="k">Cover Story</span><span class="t">The new era of Vegas entertainment</span></div>' +
+              '<div class="c-msec"><span class="k">Culture</span><span class="t">The week ahead, on &amp; off the Strip</span></div>' +
+              '<div class="c-msec"><span class="k">Nightlife</span><span class="t">Residencies, rooms &amp; late nights</span></div>' +
+              '<div class="c-msec"><span class="k">Artists</span><span class="t">Backstage with the headliners</span></div>' +
+              "</div>",
+          },
+          // 5 — THE FOUR ACTS (the arc)
+          {
+            kind: "arc",
+            layout: "left",
+            art: "assets/scenes/fouracts.png",
+            eyebrow: "The Four Acts",
+            title: "A production that builds to a <em>national tour</em>.",
+            caption:
+              "Each act stands on its own and pays for the next. We don&rsquo;t ask for the whole run up front &mdash; we prove the show one act at a time, and the house grows the entire way.",
+            palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-arc">' +
+              '<div class="c-act on"><span class="w">Act I · Jan \u201927</span><span class="t">Presents</span><span class="m">5,000<small>subs · $300k ARR</small></span></div>' +
+              '<div class="c-act"><span class="w">Act II · 2027</span><span class="t">Core growth</span><span class="m">+5,000<small>core members</small></span></div>' +
+              '<div class="c-act"><span class="w">Act III · 2027 \u2192</span><span class="t">House Eats</span><span class="m">New line<small>commerce</small></span></div>' +
+              '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="m">Every city<small>the tour</small></span></div>' +
+              "</div>",
+          },
+          // 6 — THE BOX OFFICE (how the money compounds)
+          {
+            kind: "boxoffice",
+            layout: "right",
+            art: "assets/scenes/compounding.png",
+            eyebrow: "The Box Office",
+            title: "How one show&rsquo;s receipts fund the <em>next act</em>.",
+            caption:
+              "Each act&rsquo;s receipts and audience bankroll the next. One staged investment climbs from a $300k subscription show toward a multi-line national tour. <strong>Audience is the asset.</strong>",
+            palette: ["#7b3fb0", "#dc2626", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-metrics">' +
+              '<div class="c-metric"><div class="v">$300k</div><div class="l">Presents ARR, yr 1</div></div>' +
+              '<div class="c-metric"><div class="v accent">3–5×</div><div class="l">Revenue acts by yr 3</div></div>' +
+              '<div class="c-metric"><div class="v">19k+</div><div class="l">Combined audience</div></div>' +
+              '<div class="c-metric"><div class="v gold">National</div><div class="l">Brand outcome</div></div>' +
+              "</div>",
+          },
+          // 7 — THE SET DESIGN (two sets into one) + live POC
+          {
+            kind: "setdesign",
+            layout: "center",
+            art: "assets/scenes/blueprint.png",
+            eyebrow: "The Set Design",
+            title:
+              "Two dated sets &mdash; <em>restaged as one enterprise</em>.",
+            caption:
+              "House Seats and House Eats are two separate, aging properties today. We keep everything the audience loves and rebuild them into one House Experience &mdash; and the foundation is <strong>already staged and test-ready.</strong>",
+            palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-poc"><span class="live">Live</span><span>Proof of concept &mdash;</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
+              '<div class="c-live">' +
+              '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
+              '<div class="win"><iframe src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
+              "</div>",
+          },
+          // 8 — THE HOUSE (conversion funnel)
+          {
+            kind: "funnel",
+            layout: "right",
+            art: "assets/scenes/thehouse.png",
+            eyebrow: "The House · Analytics & KPIs",
+            title: "How we fill the seats &mdash;<br />and <em>keep them</em>.",
+            caption:
+              "From the street to a subscriber in their seat: audience &rarr; email &rarr; site &rarr; interest &rarr; subscription &rarr; retention. Every row has a number we track.",
+            palette: ["#dc2626", "#7b3fb0", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-funnel">' +
+              '<div class="c-fstep"><div class="c-fbar" style="width:100%;background:#7b4fb0">Reachable audience</div><span class="c-fmeta">14,000+</span></div>' +
+              '<div class="c-fstep"><div class="c-fbar" style="width:82%;background:#8f4a9e">Email engaged</div><span class="c-fmeta">opens · clicks</span></div>' +
+              '<div class="c-fstep"><div class="c-fbar" style="width:62%;background:#a8437e">Landing sessions</div><span class="c-fmeta">sessions</span></div>' +
+              '<div class="c-fstep"><div class="c-fbar" style="width:46%;background:#c23a55">Interest / waitlist</div><span class="c-fmeta">conversion</span></div>' +
+              '<div class="c-fstep"><div class="c-fbar" style="width:34%;background:#dc2626">Paid subscription</div><span class="c-fmeta" style="color:var(--accent-hover)">5,000</span></div>' +
+              '<div class="c-fstep"><div class="c-fbar" style="width:28%;background:#7cdba8;color:#14100a">Retained</div><span class="c-fmeta">retention</span></div>' +
+              "</div>",
+          },
+          // 9 — THE PREVIEW (October 25 — Work Order 1)
+          {
+            kind: "preview",
+            layout: "lower-band",
+            art: "assets/scenes/preview.png",
+            eyebrow: "The Preview · October 25 · Work Order 1",
+            title: "A <em>preview performance</em>, not opening night.",
+            caption:
+              "October 25 is the preview &mdash; a single-page splash, built off the staged proof of concept, that seats an early audience, captures interest, and runs the research that de-risks opening night. <strong>This is the one stage on the table today.</strong> Everything it learns carries straight into the January build.",
+            palette: ["#7b3fb0", "#f4c56a", "#dc2626"],
+            flourish: ["warmth", "motes"],
+            content:
+              '<div class="c-cards">' +
+              '<div class="glass"><span class="k" style="color:var(--accent-hover)">What it does</span><p style="margin-top:8px">Seats an early audience, captures interest &amp; a waitlist, and runs the survey/research that validates the 35% conversion belief before the build.</p></div>' +
+              '<div class="glass"><span class="k" style="color:var(--gold)">What we learn</span><p style="margin-top:8px">Members reached · survey starts &amp; completions · interest/waitlist conversion · email engagement · usable qualitative feedback.</p></div>' +
+              "</div>",
+          },
+          // 10 — THE PRODUCTION SCHEDULE (roadmap)
+          {
+            kind: "roadmap",
+            layout: "left",
+            art: "assets/scenes/schedule.png",
+            eyebrow: "The Production Schedule",
+            title: "From table read to <em>opening night</em>.",
+            caption: null,
+            palette: ["#dc2626", "#7b3fb0", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-timeline">' +
+              '<div class="c-tl"><span class="w">Now → early Oct</span><div><div class="t">The table read</div><div class="d">Roles, decision rights, January MVP scope, historical baseline, tech inventory, audience data, budget, PM.</div></div></div>' +
+              '<div class="c-tl peak"><span class="w">October 25</span><div><div class="t">The preview (WO 1)</div><div class="d">A polished single-page splash tied to Bryce\u2019s birthday / House Seats anniversary. Capture interest, begin research.</div></div></div>' +
+              '<div class="c-tl"><span class="w">Late Oct → Nov</span><div><div class="t">Rehearsals</div><div class="d">Analyze research, finalize value prop, content cadence, newsletter ops, technical discovery, build the funnel.</div></div></div>' +
+              '<div class="c-tl"><span class="w">Nov → Dec</span><div><div class="t">Tech &amp; dress (WO 2)</div><div class="d">Build only the MVP: publishing, subscriptions, payments, analytics, email, account management, admin.</div></div></div>' +
+              '<div class="c-tl"><span class="w">December</span><div><div class="t">Box office opens</div><div class="d">Existing audience, newsletter, organic social, partner reach, previews and launch comms drive January subs.</div></div></div>' +
+              '<div class="c-tl peak"><span class="w">January 1</span><div><div class="t">Opening night (WO 3)</div><div class="d">Curtain up on Presents &mdash; monitor conversion, support subscribers, optimize across the first 30/60/90 days.</div></div></div>' +
+              "</div>",
+          },
+          // 11 — TICKET ECONOMICS
+          {
+            kind: "ticket",
+            layout: "left",
+            art: "assets/scenes/ticket.png",
+            eyebrow: "Ticket Economics",
+            title: "Price the ticket <em>before we print it</em>.",
+            caption:
+              "At $5/month the ticket is low-value, so processing fees bite. Compare a monthly ticket to a season pass &mdash; one charge a year cuts the fixed-fee drag from ~8–9% to ~3.4%.",
+            palette: ["#f4c56a", "#dc2626", "#7b3fb0"],
+            flourish: ["warmth"],
+            content:
+              '<table class="c-table"><tbody>' +
+              '<tr><td>$5 / month · 5,000 subs</td><td class="n">$300k gross</td></tr>' +
+              '<tr><td>Monthly fee load</td><td class="n accent">~8–9%</td></tr>' +
+              '<tr class="total"><td>$60 / year · one charge</td><td class="n">$300k gross</td></tr>' +
+              '<tr class="total"><td>Annual fee load</td><td class="n" style="color:var(--success)">~3.4%</td></tr>' +
+              "</tbody></table>",
+          },
+          // 12 — THE WORK ORDERS (staged ladder)
+          {
+            kind: "workorders",
+            layout: "center",
+            art: "assets/scenes/workorders.png",
+            eyebrow: "The Work Orders",
+            title: "One stage at a time. <em>Never a blank check.</em>",
+            caption:
+              "Every act is its own work order &mdash; scoped, priced and approved on its own, informed by the stage before it. Only Stage 1 is priced today; the rest are scoped when we get there, so you can course-correct at every gate.",
+            palette: ["#7b3fb0", "#dc2626", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-ladder">' +
+              '<div class="c-wo now"><span class="st">WO 1 · now</span><span class="nm">The Preview<small>Oct 25 single-page teaser + research</small></span><span class="amt">$3–10.5k<small>3 tiers</small></span></div>' +
+              '<div class="c-wo"><span class="st">WO 2 · next</span><span class="nm">The Build<small>Presents MVP — publishing, subs, payments</small></span><span class="amt">scoped<small>after WO 1</small></span></div>' +
+              '<div class="c-wo"><span class="st">WO 3</span><span class="nm">Opening &amp; Optimize<small>launch, drive to 5,000, 30/60/90</small></span><span class="amt">scoped<small>after build</small></span></div>' +
+              '<div class="c-wo"><span class="st">WO 4</span><span class="nm">Act II — Core &amp; Eats<small>grow core, restage House Eats</small></span><span class="amt">scoped<small>when proven</small></span></div>' +
+              '<div class="c-wo"><span class="st">WO 5 · finale</span><span class="nm">The Tour — The House Experience<small>the proven playbook, city by city</small></span><span class="amt">scoped<small>long horizon</small></span></div>' +
+              "</div>",
+          },
+          // 13 — STAGE MANAGEMENT & RISK
+          {
+            kind: "governance",
+            layout: "center",
+            art: "assets/scenes/stagemgmt.png",
+            eyebrow: "Stage Management & Risk",
+            title: "Who runs the show. <em>What could go wrong.</em>",
+            caption: null,
+            palette: ["#dc2626", "#7b3fb0", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-gov" style="margin:0 auto 14px">' +
+              '<div class="glass"><span class="k" style="color:var(--accent-hover)">Bryce / CEO</span><p style="margin-top:8px">Business direction, brand, relationships, commercial partnerships, major budget decisions, executive priorities.</p></div>' +
+              '<div class="glass"><span class="k" style="color:var(--gold)">Ryan / Product &amp; Technology</span><p style="margin-top:8px">Product &amp; tech strategy, roadmap, architecture, analytics, delivery. Mindful is a delivery partner under written SOWs.</p></div>' +
+              "</div>" +
+              '<div class="c-risk" style="margin:0 auto">' +
+              '<div class="c-rrow"><strong>35%+ conversion assumption</strong><span class="c-sev hi">High</span><span class="c-sev hi">High</span><span>Validate with prior data + the Oct 25 waitlist first.</span></div>' +
+              '<div class="c-rrow"><strong>January 1 deadline</strong><span class="c-sev hi">High</span><span class="c-sev md">Med</span><span>Lock MVP scope early; staged work orders absorb change.</span></div>' +
+              '<div class="c-rrow"><strong>Unknown platform condition</strong><span class="c-sev md">Med</span><span class="c-sev hi">High</span><span>POC is staged; discovery first, estimates flagged.</span></div>' +
+              "</div>",
+          },
+          // 14 — THE ASK (approve Work Order 1)
+          {
+            kind: "ask",
+            layout: "center",
+            art: "assets/scenes/theask.png",
+            eyebrow: "The Ask",
+            title: "Approve the preview. <em>Nothing more.</em>",
+            caption:
+              "One small, fixed commitment gets the show moving and answers the biggest question &mdash; will the audience convert &mdash; before any build dollars are spent.",
+            palette: ["#f4c56a", "#dc2626", "#7b3fb0"],
+            flourish: ["warmth", "motes"],
+            content:
+              '<div class="c-ask">' +
+              '<div class="lead">Green-light <em>Work Order 1</em> &mdash; the October 25 preview.</div>' +
+              '<div class="row"><span>Table Read <b>~$3k</b></span><span>Rehearsal <b>~$6.5k</b></span><span>Full Preview <b>~$10.5k</b></span></div>' +
+              '<div class="row"><span><b>Delivers:</b> a live single-page teaser + audience research</span></div>' +
+              '<div class="row"><span><b>Unlocks:</b> a data-backed go/no-go on the January build</span></div>' +
+              "</div>",
+          },
+          // 15 — CURTAIN CALL (closing)
+          {
+            kind: "closing",
+            layout: "center",
+            art: "assets/scenes/curtaincall.png",
+            eyebrow: "Curtain Call",
+            title:
+              "Raise the curtain on the preview.<br />Then <em>take it on tour</em>.",
+            caption:
+              "Stage 1 answers the question. The acts that follow build toward $25,000 MRR, $300,000 in year-one subscription revenue, and a proven playbook for House Seats, House Eats and The House Experience &mdash; ready to travel, city by city.",
+            palette: ["#f4c56a", "#dc2626", "#c9a0ff"],
+            flourish: ["warmth", "motes"],
+            content:
+              '<div class="c-metrics">' +
+              '<div class="c-metric"><div class="v accent">Oct 25</div><div class="l">The preview</div></div>' +
+              '<div class="c-metric"><div class="v">Jan 1</div><div class="l">Opening night</div></div>' +
+              '<div class="c-metric"><div class="v">$300k</div><div class="l">Year-one ARR</div></div>' +
+              '<div class="c-metric"><div class="v gold">On tour</div><div class="l">The finale</div></div>' +
+              "</div>",
+          },
+          // 16 — SERVICES (rate-card addendum)
+          {
+            kind: "services",
+            layout: "center",
+            art: "assets/scenes/services.png",
+            eyebrow: "Addendum · Services",
+            title: "One shop for <em>every act</em>.",
+            caption:
+              "Strategy through launch and everything in between &mdash; available for any work order, at transparent hourly rates.",
+            palette: ["#c9a0ff", "#7b3fb0", "#f4c56a"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-rate">' +
+              '<div class="c-rrate"><span class="svc">Product / Technical Strategy</span><span class="rate">$150/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">Software Engineering</span><span class="rate">$125/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">UX / Product Design</span><span class="rate">$125/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">Brand / Creative Design</span><span class="rate">$125/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">Marketing Strategy</span><span class="rate">$125/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">UI Design</span><span class="rate">$110–125/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">SEO / Paid Media</span><span class="rate">$110/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">Marketing Execution</span><span class="rate">$95/hr</span></div>' +
+              '<div class="c-rrate"><span class="svc">Graphic Design</span><span class="rate">$95/hr</span></div>' +
+              "</div>",
+          },
+        ];
+
+        // ── canvas setup ──
+        var canvas = document.getElementById("scene");
+        var ctx = canvas.getContext("2d");
+        var W = 0,
+          H = 0,
+          DPR = 1;
+        function resize() {
+          DPR = Math.min(window.devicePixelRatio || 1, 2);
+          W = window.innerWidth;
+          H = window.innerHeight;
+          canvas.width = Math.floor(W * DPR);
+          canvas.height = Math.floor(H * DPR);
+          ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        // ── image loader (optional base art + layers per scene) ──
+        SCENES.forEach(function (s) {
+          s._img = null;
+          if (s.art) {
+            var im = new Image();
+            im.onload = function () {
+              s._img = im;
+            };
+            im.src = s.art;
+          }
+          // optional stacked layers: { src, blend, motion, amp, speed }
+          (s.layers || []).forEach(function (L) {
+            L._img = null;
+            var li = new Image();
+            li.onload = function () {
+              L._img = li;
+            };
+            li.src = L.src;
+          });
+        });
+
+        // ── small deterministic RNG so placeholder scenes are stable ──
+        function mulberry(seed) {
+          return function () {
+            seed |= 0;
+            seed = (seed + 0x6d2b79f5) | 0;
+            var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+
+        function hex(c) {
+          return c;
+        }
+        function rgba(c, a) {
+          var n = parseInt(c.slice(1), 16);
+          return (
+            "rgba(" +
+            ((n >> 16) & 255) +
+            "," +
+            ((n >> 8) & 255) +
+            "," +
+            (n & 255) +
+            "," +
+            a +
+            ")"
+          );
+        }
+
+        // ── procedural placeholder painters (flat Deco, animated) ──
+        // Each returns nothing; draws into ctx for scene `s` at time `t`, with
+        // transition progress `p` (0..1) and a parallax offset px/py.
+        function paintBackdrop(s, t) {
+          var g = ctx.createLinearGradient(0, 0, W, H);
+          g.addColorStop(0, "#241633");
+          g.addColorStop(0.6, "#160d1c");
+          g.addColorStop(1, "#100b16");
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, W, H);
+          // warm glow that breathes
+          var gx = W * 0.72,
+            gy = H * 0.3;
+          var pulse = 0.5 + 0.5 * Math.sin(t * 0.0009);
+          var rg = ctx.createRadialGradient(
+            gx,
+            gy,
+            0,
+            gx,
+            gy,
+            Math.max(W, H) * 0.7,
+          );
+          rg.addColorStop(0, rgba(s.palette[0], 0.28 + 0.1 * pulse));
+          rg.addColorStop(0.5, rgba(s.palette[1], 0.12));
+          rg.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = rg;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // radiating deco sunburst rays behind the subject
+        function paintRays(s, t, cx, cy, count, R, spin) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(spin);
+          for (var i = 0; i < count; i++) {
+            var a = (i / count) * Math.PI * 2;
+            var shimmer = 0.5 + 0.5 * Math.sin(t * 0.001 + i);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(a - 0.02) * R, Math.sin(a - 0.02) * R);
+            ctx.lineTo(Math.cos(a + 0.02) * R, Math.sin(a + 0.02) * R);
+            ctx.closePath();
+            ctx.fillStyle = rgba(
+              i % 2 ? s.palette[2] : s.palette[0],
+              0.05 + 0.06 * shimmer,
+            );
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // a lit window (arched) with a flickering glow
+        function litWindow(x, y, w, h, col, t, seed) {
+          var r = mulberry(seed);
+          var flick =
+            0.72 + 0.28 * Math.sin(t * 0.003 + r() * 6.28) * (0.6 + 0.4 * r());
+          ctx.save();
+          // frame
+          ctx.fillStyle = "#0c0812";
+          roundRectArch(x - 4, y - 4, w + 8, h + 8);
+          ctx.fill();
+          // glowing pane
+          var g = ctx.createLinearGradient(x, y, x, y + h);
+          g.addColorStop(0, rgba(col, 0.95 * flick));
+          g.addColorStop(1, rgba(col, 0.35 * flick));
+          ctx.fillStyle = g;
+          roundRectArch(x, y, w, h);
+          ctx.fill();
+          // silhouette figure hint
+          ctx.fillStyle = "rgba(10,7,15,0.86)";
+          var fw = w * 0.28,
+            fh = h * 0.5,
+            fx = x + w / 2 - fw / 2,
+            fy = y + h - fh;
+          ctx.fillRect(fx, fy, fw, fh);
+          ctx.beginPath();
+          ctx.arc(fx + fw / 2, fy - fw * 0.2, fw * 0.34, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        function roundRectArch(x, y, w, h) {
+          var r = Math.min(w / 2, 14);
+          ctx.beginPath();
+          ctx.moveTo(x, y + h);
+          ctx.lineTo(x, y + r);
+          ctx.arc(x + w / 2, y + r, w / 2, Math.PI, 0);
+          ctx.lineTo(x + w, y + h);
+          ctx.closePath();
+        }
+
+        // spotlight cone sweeping
+        function spotlight(cx, topY, t, col) {
+          var sweep = Math.sin(t * 0.0006) * 0.32;
+          ctx.save();
+          ctx.translate(cx, topY);
+          ctx.rotate(sweep);
+          var g = ctx.createLinearGradient(0, 0, 0, H);
+          g.addColorStop(0, rgba(col, 0.22));
+          g.addColorStop(1, rgba(col, 0));
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(-W * 0.22, H);
+          ctx.lineTo(W * 0.22, H);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function paintPlaceholder(s, t) {
+          paintBackdrop(s, t);
+          var cx = W * 0.66;
+          // map new scene kinds onto existing placeholder painters
+          var kindMap = {
+            vision: "stage",
+            product: "seats",
+            booking: "facade",
+            arc: "tour",
+          };
+          var k = kindMap[s.kind] || s.kind;
+          if (k === "facade") {
+            paintRays(s, t, cx, H * 0.42, 40, Math.max(W, H), t * 0.00002);
+            // stepped façade block
+            ctx.fillStyle = "rgba(20,13,26,0.7)";
+            var fw = Math.min(W * 0.5, 620),
+              fx = cx - fw / 2,
+              fh = H * 0.66,
+              fy = H - fh;
+            ctx.fillRect(fx, fy + fh * 0.14, fw, fh);
+            // stepped roofline
+            ctx.beginPath();
+            ctx.moveTo(fx, fy + fh * 0.14);
+            ctx.lineTo(fx + fw * 0.2, fy + fh * 0.14);
+            ctx.lineTo(fx + fw * 0.2, fy + fh * 0.06);
+            ctx.lineTo(fx + fw * 0.36, fy + fh * 0.06);
+            ctx.lineTo(fx + fw * 0.36, fy);
+            ctx.lineTo(fx + fw * 0.64, fy);
+            ctx.lineTo(fx + fw * 0.64, fy + fh * 0.06);
+            ctx.lineTo(fx + fw * 0.8, fy + fh * 0.06);
+            ctx.lineTo(fx + fw * 0.8, fy + fh * 0.14);
+            ctx.lineTo(fx + fw, fy + fh * 0.14);
+            ctx.closePath();
+            ctx.fill();
+            // grid of lit windows (the offerings)
+            var cols = 3,
+              rows = 2,
+              pad = fw * 0.08;
+            var ww = (fw - pad * (cols + 1)) / cols;
+            var wh = (fh * 0.72 - pad * (rows + 1)) / rows;
+            var cset = [
+              s.palette[2],
+              s.palette[0],
+              s.palette[1],
+              s.palette[2],
+              s.palette[1],
+              s.palette[0],
+            ];
+            var k = 0;
+            for (var rrow = 0; rrow < rows; rrow++) {
+              for (var ccol = 0; ccol < cols; ccol++) {
+                var wx = fx + pad + ccol * (ww + pad);
+                var wy = fy + fh * 0.2 + pad + rrow * (wh + pad);
+                litWindow(
+                  wx,
+                  wy,
+                  ww,
+                  wh,
+                  cset[k % cset.length],
+                  t,
+                  100 + k * 37,
+                );
+                k++;
+              }
+            }
+            // marquee band
+            ctx.fillStyle = rgba(s.palette[2], 0.9);
+            ctx.fillRect(fx + fw * 0.12, fy + fh * 0.14 + 2, fw * 0.76, 10);
+          } else if (k === "stage") {
+            paintRays(s, t, cx, H * 0.34, 32, Math.max(W, H) * 0.9, 0);
+            spotlight(cx, H * 0.05, t, s.palette[1]);
+            // stage floor
+            ctx.fillStyle = rgba(s.palette[0], 0.5);
+            ctx.beginPath();
+            ctx.moveTo(cx - W * 0.24, H * 0.9);
+            ctx.lineTo(cx + W * 0.24, H * 0.9);
+            ctx.lineTo(cx + W * 0.3, H);
+            ctx.lineTo(cx - W * 0.3, H);
+            ctx.closePath();
+            ctx.fill();
+            // singer silhouette + mic
+            ctx.fillStyle = "#0b0710";
+            ctx.fillRect(cx - 4, H * 0.42, 8, H * 0.4);
+            ctx.beginPath();
+            ctx.ellipse(cx, H * 0.5, 34, 64, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(cx, H * 0.4, 22, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (k === "seats") {
+            paintRays(s, t, cx, H * 0.3, 28, Math.max(W, H) * 0.8, 0);
+            // rows of seat silhouettes receding
+            for (var row = 0; row < 6; row++) {
+              var yy = H * 0.5 + row * (H * 0.075);
+              var scale = 1 + row * 0.16;
+              ctx.fillStyle = "rgba(11,7,16," + (0.9 - row * 0.06) + ")";
+              for (var seat = -6; seat <= 6; seat++) {
+                var sxx = cx + seat * (30 * scale);
+                ctx.beginPath();
+                ctx.arc(sxx, yy, 8 * scale, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(sxx - 9 * scale, yy, 18 * scale, 22 * scale);
+              }
+            }
+            spotlight(cx, H * 0.02, t, s.palette[2]);
+          } else if (k === "dining") {
+            paintRays(s, t, cx, H * 0.32, 24, Math.max(W, H) * 0.7, 0);
+            // candle-lit table dots
+            for (var d = 0; d < 9; d++) {
+              var r2 = mulberry(200 + d);
+              var tx = cx + (r2() - 0.5) * W * 0.5;
+              var ty = H * 0.55 + (r2() - 0.5) * H * 0.4;
+              var fl = 0.6 + 0.4 * Math.sin(t * 0.004 + d);
+              var g2 = ctx.createRadialGradient(tx, ty, 0, tx, ty, 60);
+              g2.addColorStop(0, rgba(s.palette[1], 0.7 * fl));
+              g2.addColorStop(1, "rgba(0,0,0,0)");
+              ctx.fillStyle = g2;
+              ctx.beginPath();
+              ctx.arc(tx, ty, 60, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = rgba(s.palette[1], fl);
+              ctx.beginPath();
+              ctx.arc(tx, ty, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          } else if (k === "tour") {
+            // a receding row of lit marquees / skyline
+            for (var m = 0; m < 9; m++) {
+              var depth = m / 9;
+              var mx = W * (0.5 + (m - 4) * 0.11);
+              var mw = Math.max(40, 160 * (1 - depth * 0.6));
+              var mh = H * (0.5 - depth * 0.28);
+              var flick = 0.6 + 0.4 * Math.sin(t * 0.003 + m);
+              ctx.fillStyle = "rgba(16,10,22," + (0.5 + depth * 0.4) + ")";
+              ctx.fillRect(mx - mw / 2, H - mh, mw, mh);
+              // glowing marquee band
+              ctx.fillStyle = rgba(
+                m % 2 ? s.palette[0] : s.palette[2],
+                0.85 * flick,
+              );
+              ctx.fillRect(
+                mx - mw / 2,
+                H - mh + mh * 0.12,
+                mw,
+                Math.max(4, mh * 0.06),
+              );
+            }
+            paintRays(s, t, W * 0.5, H * 0.22, 44, Math.max(W, H), t * 0.00001);
+          }
+        }
+
+        // draw a loaded image "cover" style with slow ken-burns
+        // shared cover-fit box (so base + layers register perfectly), with
+        // a gentle ken-burns applied to the whole stack
+        function coverBox(iw, ih, t) {
+          var scale =
+            Math.max(W / iw, H / ih) *
+            (1.04 + 0.04 * (0.5 + 0.5 * Math.sin(t * 0.00012)));
+          var dw = iw * scale,
+            dh = ih * scale;
+          return {
+            dw: dw,
+            dh: dh,
+            ox: (W - dw) / 2 + Math.sin(t * 0.0001) * 16,
+            oy: (H - dh) / 2 + Math.cos(t * 0.00009) * 12,
+          };
+        }
+
+        function paintImage(s, t) {
+          var img = s._img;
+          var b = coverBox(img.naturalWidth, img.naturalHeight, t);
+          ctx.drawImage(img, b.ox, b.oy, b.dw, b.dh);
+          s._box = b; // remember so layers share the same fit
+        }
+
+        // draw one stacked layer over the base with a blend + a motion
+        function paintLayer(s, L, t) {
+          if (!L._img) return;
+          var b =
+            s._box || coverBox(L._img.naturalWidth, L._img.naturalHeight, t);
+          var amp = L.amp == null ? 1 : L.amp;
+          var spd = L.speed == null ? 1 : L.speed;
+          var dx = 0,
+            dy = 0,
+            alpha = 1;
+          var m = L.motion || "none";
+          if (m === "flicker") {
+            // lights breathing/flickering — vary opacity
+            alpha =
+              0.6 +
+              0.4 * (0.5 + 0.5 * Math.sin(t * 0.004 * spd)) +
+              0.08 * Math.sin(t * 0.021 * spd);
+          } else if (m === "pulse") {
+            alpha = 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(t * 0.0016 * spd));
+          } else if (m === "sweep") {
+            // light beams swaying horizontally
+            dx = Math.sin(t * 0.0005 * spd) * 26 * amp;
+            alpha = 0.7 + 0.3 * (0.5 + 0.5 * Math.sin(t * 0.0011 * spd));
+          } else if (m === "drift") {
+            // crowd / foreground gentle side-to-side + bob
+            dx = Math.sin(t * 0.0004 * spd) * 10 * amp;
+            dy = Math.sin(t * 0.0006 * spd + 1) * 3 * amp;
+          } else if (m === "float") {
+            dy = Math.sin(t * 0.0008 * spd) * 8 * amp;
+          }
+          ctx.save();
+          if (L.blend) ctx.globalCompositeOperation = L.blend; // e.g. "screen","lighten"
+          ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+          ctx.drawImage(L._img, b.ox + dx, b.oy + dy, b.dw, b.dh);
+          ctx.restore();
+        }
+
+        // procedural animated accents drawn over a real image, positioned by
+        // ratios so they work on any façade-style base (no new art needed).
+        // subtle flourishes that sit lightly over a finished illustration —
+        // never bright enough to compete with the art.
+        function paintFlourish(s, t) {
+          var fx = s.flourish;
+          if (!fx) return;
+          if (fx.indexOf("warmth") >= 0) {
+            // barely-there warm breath in the upper area (like the room glowing)
+            var pulse = 0.5 + 0.5 * Math.sin(t * 0.0008);
+            var gx = W * 0.5,
+              gy = H * 0.34;
+            var g = ctx.createRadialGradient(
+              gx,
+              gy,
+              0,
+              gx,
+              gy,
+              Math.max(W, H) * 0.6,
+            );
+            g.addColorStop(
+              0,
+              "rgba(244,197,106," + (0.03 + 0.03 * pulse) + ")",
+            );
+            g.addColorStop(1, "rgba(244,197,106,0)");
+            ctx.save();
+            ctx.globalCompositeOperation = "screen";
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+          }
+          if (fx.indexOf("motes") >= 0) {
+            // a few slow, faint embers drifting up — sparse and gentle
+            ctx.save();
+            ctx.globalCompositeOperation = "screen";
+            for (var i = 0; i < 14; i++) {
+              var r = mulberry(900 + i);
+              var bx = (r() * 0.9 + 0.05) * W + Math.sin(t * 0.0003 + i) * 12;
+              var speed = 0.004 + r() * 0.006;
+              var by = H - ((t * speed + r() * H) % (H * 1.15));
+              var tw = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.0018 + i * 1.7));
+              ctx.fillStyle = "rgba(244,197,106," + 0.18 * tw + ")";
+              ctx.beginPath();
+              ctx.arc(bx, by, 0.8 + r() * 1.2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+          if (fx.indexOf("vignette") >= 0) {
+            // gentle breathing edge darkening to focus the eye
+            var vp = 0.5 + 0.5 * Math.sin(t * 0.0006);
+            var vg = ctx.createRadialGradient(
+              W / 2,
+              H / 2,
+              Math.min(W, H) * 0.4,
+              W / 2,
+              H / 2,
+              Math.max(W, H) * 0.72,
+            );
+            vg.addColorStop(0, "rgba(16,11,20,0)");
+            vg.addColorStop(1, "rgba(16,11,20," + (0.18 + 0.06 * vp) + ")");
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, W, H);
+          }
+        }
+
+        // ── scene state + crossfade ──
+        var cur = 0,
+          prev = -1,
+          tPrev = 0,
+          fade = 1; // fade: 0..1 into cur
+        var startT = performance.now();
+
+        function drawScene(s, t) {
+          if (s._img) {
+            paintImage(s, t);
+            (s.layers || []).forEach(function (L) {
+              paintLayer(s, L, t);
+            });
+            paintFlourish(s, t);
+          } else {
+            // clean plain background (no procedural scene art) — a soft plum
+            // wash + optional subtle flourish. Real art drops in via s.art.
+            paintPlain(s, t);
+            paintFlourish(s, t);
+          }
+        }
+
+        // plain, quiet background for scenes without an illustration
+        function paintPlain(s, t) {
+          var g = ctx.createRadialGradient(
+            W * 0.5,
+            H * 0.42,
+            0,
+            W * 0.5,
+            H * 0.42,
+            Math.max(W, H) * 0.85,
+          );
+          g.addColorStop(0, "#1d1526");
+          g.addColorStop(0.62, "#160f1d");
+          g.addColorStop(1, "#100b16");
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        function loop(now) {
+          var t = now - startT;
+          ctx.clearRect(0, 0, W, H);
+          // during a transition, draw prev fading out then cur fading in
+          if (fade < 1 && prev >= 0) {
+            ctx.globalAlpha = 1;
+            drawScene(SCENES[prev], t);
+            ctx.globalAlpha = ease(fade);
+            drawScene(SCENES[cur], t);
+            ctx.globalAlpha = 1;
+            fade += reduce ? 1 : 0.011;
+            if (fade >= 1) {
+              fade = 1;
+              prev = -1;
+            }
+          } else {
+            drawScene(SCENES[cur], t);
+          }
+          requestAnimationFrame(loop);
+        }
+        function ease(x) {
+          return x * x * (3 - 2 * x);
+        }
+        requestAnimationFrame(loop);
+
+        // ── copy + chrome per scene ──
+        var elCopy = document.getElementById("copy");
+        var elScrim = document.getElementById("scrim");
+        var elEye = document.getElementById("eyebrow");
+        var elTitle = document.getElementById("title");
+        var elCap = document.getElementById("caption");
+        var elContent = document.getElementById("content");
+        var elCounter = document.getElementById("counter");
+        var elCue = document.getElementById("cue");
+        var progFill = document.getElementById("progFill");
+        var progIdx = document.getElementById("progIdx");
+        var progTotal = document.getElementById("progTotal");
+
+        function pad(n) {
+          return (n < 10 ? "0" : "") + n;
+        }
+        function renderCopy(i) {
+          var s = SCENES[i];
+          elEye.textContent = s.eyebrow;
+          elTitle.innerHTML = s.title;
+          elCap.innerHTML = s.caption || "";
+          elContent.innerHTML = s.content || "";
+          // per-scene layout (walk-through-Vegas: each stop a different room)
+          var lay = s.layout || "left";
+          elCopy.className =
+            "copy" + (s.content ? " has-content" : "") + " layout-" + lay;
+          // scrim direction follows the layout so content always reads
+          var scrimClass = {
+            right: "s-right",
+            center: "s-center",
+            "lower-band": "s-bottom",
+            "lower-left": "s-bottom",
+            hero: "s-hero",
+          };
+          if (elScrim)
+            elScrim.className =
+              "scrim" + (scrimClass[lay] ? " " + scrimClass[lay] : "");
+          elCounter.textContent = pad(i + 1) + " / " + pad(SCENES.length);
+          if (progFill)
+            progFill.style.height =
+              (SCENES.length > 1 ? (i / (SCENES.length - 1)) * 100 : 100) + "%";
+          if (progIdx) progIdx.textContent = pad(i + 1);
+          if (progTotal) progTotal.textContent = pad(SCENES.length);
+          elCue.classList.toggle("hide", i === SCENES.length - 1);
+          // retrigger reveal
+          elCopy.classList.remove("show");
+          void elCopy.offsetWidth;
+          elCopy.classList.add("show");
+        }
+
+        function go(i) {
+          i = Math.max(0, Math.min(i, SCENES.length - 1));
+          if (i === cur) return;
+          // 1) fade the current copy OUT
+          elCopy.classList.remove("show");
+          // 2) after it clears, swap the scene (canvas cross-fades) + fade copy IN
+          setTimeout(
+            function () {
+              prev = cur;
+              cur = i;
+              fade = 0;
+              renderCopy(cur);
+            },
+            reduce ? 0 : 480,
+          );
+        }
+
+        renderCopy(0);
+
+        // ── navigation: wheel / keys / swipe ──
+        var lock = false;
+        function step(dir) {
+          if (lock) return;
+          var next = cur + dir;
+          if (next < 0 || next >= SCENES.length) return;
+          lock = true;
+          go(next);
+          setTimeout(function () {
+            lock = false;
+          }, 1900);
+        }
+        window.addEventListener(
+          "wheel",
+          function (e) {
+            if (Math.abs(e.deltaY) < 8) return;
+            step(e.deltaY > 0 ? 1 : -1);
+          },
+          { passive: true },
+        );
+        window.addEventListener("keydown", function (e) {
+          if (
+            e.key === "ArrowDown" ||
+            e.key === "ArrowRight" ||
+            e.key === " "
+          ) {
+            e.preventDefault();
+            step(1);
+          } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            step(-1);
+          }
+        });
+        var ty0 = 0,
+          tracking = false,
+          startedInCopy = false;
+        window.addEventListener(
+          "touchstart",
+          function (e) {
+            if (e.touches.length === 1) {
+              ty0 = e.touches[0].clientY;
+              tracking = true;
+              // did the touch start inside the (possibly scrollable) copy?
+              startedInCopy = !!(
+                e.target &&
+                e.target.closest &&
+                e.target.closest(".copy")
+              );
+            }
+          },
+          { passive: true },
+        );
+        window.addEventListener(
+          "touchend",
+          function (e) {
+            if (!tracking) return;
+            tracking = false;
+            var dy = (e.changedTouches[0] || {}).clientY - ty0;
+            if (Math.abs(dy) <= 70) return;
+            // if the swipe was inside a copy panel that can still scroll in
+            // that direction, let native scrolling handle it (don't jump scenes)
+            if (startedInCopy && elCopy) {
+              var atTop = elCopy.scrollTop <= 1;
+              var atBottom =
+                elCopy.scrollTop + elCopy.clientHeight >=
+                elCopy.scrollHeight - 1;
+              var scrollable = elCopy.scrollHeight > elCopy.clientHeight + 2;
+              if (scrollable) {
+                // swiping up (dy<0) = go to next; only jump if already at bottom
+                if (dy < 0 && !atBottom) return;
+                // swiping down (dy>0) = go to prev; only jump if already at top
+                if (dy > 0 && !atTop) return;
+              }
+            }
+            step(dy < 0 ? 1 : -1);
+          },
+          { passive: true },
+        );
+      })();
+    </script>
+  </body>
+</html>
