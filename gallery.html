@@ -1082,6 +1082,37 @@
       .copy.show .content {
         transition-delay: 0.76s;
       }
+
+      /* ── hero title: letters pop up from behind the baseline ──
+         Each glyph is hidden below an invisible line, then springs up into
+         place. The outer .ch is a clip window; the inner <b> does the rising. */
+      .title.letters {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+      }
+      .title.letters .ch {
+        display: inline-block;
+        overflow: hidden;
+        /* clip window sits on the text line; a little headroom on top, and the
+           bottom clipped so nothing shows below the baseline */
+        vertical-align: bottom;
+        padding-top: 0.12em;
+        margin-top: -0.12em;
+      }
+      .title.letters .ch b {
+        display: inline-block;
+        font-style: inherit;
+        font-weight: inherit;
+        transform: translateY(110%);
+        will-change: transform;
+      }
+      .copy.show .title.letters .ch b {
+        transform: translateY(0);
+        /* springy pop with a slight overshoot */
+        transition: transform 0.62s cubic-bezier(0.16, 1.28, 0.3, 1);
+        transition-delay: calc(0.3s + var(--i) * 0.035s);
+      }
       /* stagger the INNER content items so panels build in, not pop in */
       .content > * > * {
         opacity: 0;
@@ -2647,6 +2678,42 @@
         function pad(n) {
           return (n < 10 ? "0" : "") + n;
         }
+        // Wrap each visible character of an element in <span class="ch"> so it
+        // can be animated individually. Preserves <em>, <br>, spaces. Sets a
+        // --i custom prop per letter for staggered delays.
+        function splitLetters(root) {
+          var idx = { n: 0 };
+          function walk(node, wrapEm) {
+            var kids = Array.prototype.slice.call(node.childNodes);
+            kids.forEach(function (child) {
+              if (child.nodeType === 3) {
+                // text node → one span per char
+                var frag = document.createDocumentFragment();
+                child.nodeValue.split("").forEach(function (chr) {
+                  if (chr === " ") {
+                    frag.appendChild(document.createTextNode(" "));
+                    return;
+                  }
+                  // outer .ch clips at the baseline; inner <b> rises up from below
+                  var sp = document.createElement("span");
+                  sp.className = "ch";
+                  sp.style.setProperty("--i", idx.n++);
+                  var inner = document.createElement("b");
+                  inner.textContent = chr;
+                  sp.appendChild(inner);
+                  frag.appendChild(sp);
+                });
+                node.replaceChild(frag, child);
+              } else if (child.nodeType === 1) {
+                if (child.tagName === "BR") return; // leave line breaks
+                walk(child, child.tagName === "EM");
+              }
+            });
+          }
+          walk(root, false);
+          root.style.setProperty("--n", idx.n);
+        }
+
         function renderCopy(i) {
           var s = SCENES[i];
           elEye.textContent = s.eyebrow;
@@ -2655,6 +2722,13 @@
           elContent.innerHTML = s.content || "";
           // per-scene layout (walk-through-Vegas: each stop a different room)
           var lay = s.layout || "left";
+          // hero title gets a per-letter marquee reveal
+          if (lay === "hero" && !reduce) {
+            elTitle.classList.add("letters");
+            splitLetters(elTitle);
+          } else {
+            elTitle.classList.remove("letters");
+          }
           elCopy.className =
             "copy" + (s.content ? " has-content" : "") + " layout-" + lay;
           // scrim direction follows the layout so content always reads
