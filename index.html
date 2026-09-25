@@ -1003,7 +1003,9 @@
       /* live embedded preview — a browser-chrome frame around the real POC */
       .c-live {
         max-width: 560px;
-        margin: 14px auto 0;
+        /* left-aligned by default (flush with the copy column); center scenes
+           re-center it via the .copy.layout-center .content > * rule */
+        margin: 14px 0 0;
         border-radius: 10px;
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.14);
@@ -1050,77 +1052,164 @@
         transform-origin: top left;
         pointer-events: none;
       }
-      /* ── before → after rebrand compare (the vision / umbrella) ── */
-      .c-elevate {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 18px;
-        max-width: 900px;
-        margin: 0 auto;
-      }
-      .c-elevate .before {
+      /* loading overlay over the POC iframe until it fires `load` */
+      .c-load {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        /* shimmering plum backdrop */
+        background: linear-gradient(
+          110deg,
+          #140d18 30%,
+          #241633 50%,
+          #140d18 70%
+        );
+        background-size: 220% 100%;
+        animation: pocShimmer 1.6s ease-in-out infinite;
+        transition: opacity 0.5s ease;
       }
-      .c-shot {
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
-        position: relative;
+      .c-load.done {
+        opacity: 0;
+        pointer-events: none;
       }
-      .c-shot img {
+      @keyframes pocShimmer {
+        0% {
+          background-position: 130% 0;
+        }
+        100% {
+          background-position: -30% 0;
+        }
+      }
+      .c-load .ring {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid rgba(244, 197, 106, 0.25);
+        border-top-color: var(--gold);
+        animation: pocSpin 0.9s linear infinite;
+      }
+      @keyframes pocSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .c-load .lbl {
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--fg-muted);
+      }
+      /* ── umbrella brand architecture (the vision) ──
+         One brand bar on top; three experience tiers beneath it. */
+      .c-umbrella {
+        max-width: 820px;
+        margin: 0 auto;
+      }
+      .c-umbrella .crown {
+        text-align: center;
+        margin-bottom: 6px;
+      }
+      .c-umbrella .crown .nm {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: clamp(18px, 2vw, 24px);
+        color: var(--gold);
+        letter-spacing: 0.01em;
+      }
+      .c-umbrella .crown .sub {
         display: block;
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--fg-dim);
+        margin-top: 4px;
+      }
+      /* soft curved connectors from the brand down to the three tiers */
+      .c-umbrella .stems {
+        display: block;
+        width: 84%;
+        height: 42px;
+        margin: 6px auto 2px;
+        overflow: visible;
+      }
+      .c-umbrella .stems path {
+        fill: none;
+        stroke: rgba(244, 197, 106, 0.4);
+        stroke-width: 1.2;
+        stroke-linecap: round;
+      }
+      .c-tiers {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .c-tier {
+        background: rgba(30, 22, 38, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .c-tier.built {
+        border-color: rgba(244, 197, 106, 0.5);
+        box-shadow: 0 0 0 1px rgba(244, 197, 106, 0.35);
+      }
+      .c-tier .shot {
+        height: 96px;
+        overflow: hidden;
+        position: relative;
+        background: #100b16;
+      }
+      .c-tier .shot img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: top center;
       }
-      .c-shot .tag {
-        position: absolute;
-        left: 8px;
-        top: 8px;
-        font-family: var(--font-sans);
-        font-size: 8.5px;
+      .c-tier .shot.placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-serif);
+        font-size: 12px;
+        color: var(--fg-dim);
+        background: repeating-linear-gradient(
+          45deg,
+          rgba(255, 255, 255, 0.02) 0,
+          rgba(255, 255, 255, 0.02) 8px,
+          rgba(255, 255, 255, 0.05) 8px,
+          rgba(255, 255, 255, 0.05) 16px
+        );
+      }
+      .c-tier .body {
+        padding: 10px 12px 12px;
+        text-align: left;
+      }
+      .c-tier .nm {
+        font-family: var(--font-serif);
         font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 14px;
         color: var(--fg);
-        background: rgba(16, 11, 20, 0.72);
-        padding: 3px 8px;
-        border-radius: 4px;
       }
-      /* the two dated sites — small, muted */
-      .c-elevate .before .c-shot {
-        width: 210px;
-        height: 118px;
-        filter: saturate(0.85);
-      }
-      /* the elevated result — larger, gold-framed, the hero of the compare */
-      .c-elevate .after .c-shot {
-        width: 440px;
-        height: 264px;
-        border-color: rgba(244, 197, 106, 0.5);
-        box-shadow:
-          0 0 0 1px rgba(244, 197, 106, 0.4),
-          0 20px 50px rgba(0, 0, 0, 0.5);
-      }
-      .c-elevate .after .tag {
-        color: var(--gold);
-        border: 1px solid rgba(244, 197, 106, 0.4);
-      }
-      .c-elevate .xarrow {
-        font-size: 24px;
-        color: var(--accent-hover);
-        flex: none;
-      }
-      .c-elevate .after .cap {
-        margin-top: 8px;
+      .c-tier .st {
         font-family: var(--font-sans);
-        font-size: 11px;
+        font-size: 10px;
+        letter-spacing: 0.02em;
+        margin-top: 3px;
         color: var(--fg-muted);
-        text-align: center;
+      }
+      .c-tier.built .st {
+        color: var(--gold);
       }
 
       /* per-scene reveal — soft fade + gentle rise; also fades OUT on exit */
@@ -1890,7 +1979,7 @@
             flourish: ["warmth"],
             content:
               '<div class="c-order">' +
-              '<div class="c-ord"><span class="n">01</span><span class="t">The vision &mdash; one House Experience</span></div>' +
+              '<div class="c-ord"><span class="n">01</span><span class="t">The vision &mdash; three experiences, one brand</span></div>' +
               '<div class="c-ord"><span class="n">02</span><span class="t">The booking &mdash; the goal</span></div>' +
               '<div class="c-ord"><span class="n">03</span><span class="t">On the bill &mdash; Presents</span></div>' +
               '<div class="c-ord"><span class="n">04</span><span class="t">The four acts</span></div>' +
@@ -1911,19 +2000,22 @@
             layout: "center",
             art: "assets/scenes/blueprint.png",
             eyebrow: "The Vision",
-            title: "Three properties. <em>One House Experience.</em>",
+            title: "Three experiences. <em>One brand.</em>",
             caption:
-              "House Seats and House Eats are dated today. We elevate them into one brand &mdash; the look and quality of House Seats Presents, the design already built &mdash; with Presents the front door, House Seats and House Eats the rooms behind it.",
+              "<strong>The House Experience</strong> is the umbrella. Presents, House Seats and House Eats each live under it &mdash; and the House Seats Presents design, already built, sets the standard the others are raised to.",
             palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
             flourish: ["warmth"],
             content:
-              '<div class="c-elevate">' +
-              '<div class="before">' +
-              '<div class="c-shot"><span class="tag">House Seats · today</span><img src="assets/houseseats-current.png" alt="Current House Seats site" loading="lazy" /></div>' +
-              '<div class="c-shot"><span class="tag">House Eats · today</span><img src="assets/houseeats-current.png" alt="Current House Eats site" loading="lazy" /></div>' +
+              '<div class="c-umbrella">' +
+              '<div class="crown"><span class="nm">The House Experience</span><span class="sub">The brand umbrella</span></div>' +
+              '<svg class="stems" viewBox="0 0 600 46" preserveAspectRatio="none" aria-hidden="true">' +
+              '<path d="M300 0 V12" /><path d="M300 12 C300 30, 100 16, 100 46" /><path d="M300 12 C300 30, 500 16, 500 46" /><path d="M300 12 V46" />' +
+              "</svg>" +
+              '<div class="c-tiers">' +
+              '<div class="c-tier built"><div class="shot"><img src="assets/presents-current.png" alt="House Seats Presents — elevated design" loading="lazy" /></div><div class="body"><div class="nm">Presents</div><div class="st">Built &amp; staged · the standard</div></div></div>' +
+              '<div class="c-tier"><div class="shot"><img src="assets/houseseats-current.png" alt="Current House Seats site" loading="lazy" /></div><div class="body"><div class="nm">House Seats</div><div class="st">Dated today · to elevate</div></div></div>' +
+              '<div class="c-tier"><div class="shot"><img src="assets/houseeats-current.png" alt="Current House Eats site" loading="lazy" /></div><div class="body"><div class="nm">House Eats</div><div class="st">Dated today · to elevate</div></div></div>' +
               "</div>" +
-              '<span class="xarrow">&rarr;</span>' +
-              '<div class="after"><div class="c-shot"><span class="tag">The House Experience</span><img src="assets/presents-current.png" alt="Elevated House Seats Presents design" loading="lazy" /></div><div class="cap">The elevated design, already built &mdash; the standard for all three tiers.</div></div>' +
               "</div>",
           },
           // 4 — THE BOOKING (the goal)
@@ -1961,7 +2053,7 @@
               '<div class="c-poc"><span class="live">Live</span><span>Proof of concept &mdash;</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
               '<div class="c-live">' +
               '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
-              '<div class="win"><iframe src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
+              '<div class="win"><div class="c-load" id="pocLoad"><span class="ring"></span><span class="lbl">Loading preview…</span></div><iframe id="pocFrame" src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
               "</div>",
           },
           // 6 — THE FOUR ACTS (the arc)
@@ -2148,7 +2240,7 @@
             title:
               "Raise the curtain on the preview.<br />Then <em>take it on tour</em>.",
             caption:
-              "Stage 1 answers the question. The acts that follow build toward $25,000 MRR, $300,000 in year-one subscription revenue, and a proven playbook for House Seats, House Eats and The House Experience &mdash; ready to travel, city by city.",
+              "Stage 1 answers the question. The acts that follow build toward $25,000 MRR, $300,000 in year-one subscription revenue, and a proven playbook &mdash; Presents, House Seats and House Eats under <strong>The House Experience</strong>, ready to travel city by city.",
             palette: ["#f4c56a", "#dc2626", "#c9a0ff"],
             flourish: ["warmth", "motes"],
             content:
@@ -2862,6 +2954,18 @@
           if (progIdx) progIdx.textContent = pad(i + 1);
           if (progTotal) progTotal.textContent = pad(SCENES.length);
           elCue.classList.toggle("hide", i === SCENES.length - 1);
+          // if this scene has the live POC iframe, wire its loading overlay
+          var pocFrame = document.getElementById("pocFrame");
+          var pocLoad = document.getElementById("pocLoad");
+          if (pocFrame && pocLoad) {
+            pocLoad.classList.remove("done");
+            var hideLoad = function () {
+              pocLoad.classList.add("done");
+            };
+            pocFrame.addEventListener("load", hideLoad);
+            // safety fallback in case load already fired or is blocked
+            setTimeout(hideLoad, 6000);
+          }
           // retrigger reveal
           elCopy.classList.remove("show");
           void elCopy.offsetWidth;
