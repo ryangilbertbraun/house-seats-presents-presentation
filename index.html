@@ -1088,6 +1088,10 @@
         transform: none !important;
         transition: none !important;
       }
+      .title.letters .word {
+        display: inline-block;
+        white-space: nowrap;
+      }
       .title.letters .ch {
         display: inline-block;
         overflow: hidden;
@@ -1107,8 +1111,8 @@
       .copy.show .title.letters .ch b {
         transform: translateY(0);
         /* springy pop with a slight overshoot */
-        transition: transform 0.62s cubic-bezier(0.16, 1.28, 0.3, 1);
-        transition-delay: calc(0.3s + var(--i) * 0.035s);
+        transition: transform 0.58s cubic-bezier(0.16, 1.28, 0.3, 1);
+        transition-delay: calc(0.28s + var(--i) * 0.028s);
       }
       /* stagger the INNER content items so panels build in, not pop in */
       .content > * > * {
@@ -2684,21 +2688,28 @@
             var kids = Array.prototype.slice.call(node.childNodes);
             kids.forEach(function (child) {
               if (child.nodeType === 3) {
-                // text node → one span per char
+                // text node → per-char spans, but grouped into per-WORD wrappers
+                // so a word never breaks across lines (only spaces can wrap).
                 var frag = document.createDocumentFragment();
-                child.nodeValue.split("").forEach(function (chr) {
-                  if (chr === " ") {
+                var parts = child.nodeValue.split(/(\s+)/); // keep the spaces
+                parts.forEach(function (part) {
+                  if (part === "") return;
+                  if (/^\s+$/.test(part)) {
                     frag.appendChild(document.createTextNode(" "));
                     return;
                   }
-                  // outer .ch clips at the baseline; inner <b> rises up from below
-                  var sp = document.createElement("span");
-                  sp.className = "ch";
-                  sp.style.setProperty("--i", idx.n++);
-                  var inner = document.createElement("b");
-                  inner.textContent = chr;
-                  sp.appendChild(inner);
-                  frag.appendChild(sp);
+                  var word = document.createElement("span");
+                  word.className = "word";
+                  part.split("").forEach(function (chr) {
+                    var sp = document.createElement("span");
+                    sp.className = "ch";
+                    sp.style.setProperty("--i", idx.n++);
+                    var inner = document.createElement("b");
+                    inner.textContent = chr;
+                    sp.appendChild(inner);
+                    word.appendChild(sp);
+                  });
+                  frag.appendChild(word);
                 });
                 node.replaceChild(frag, child);
               } else if (child.nodeType === 1) {
@@ -2719,8 +2730,9 @@
           elContent.innerHTML = s.content || "";
           // per-scene layout (walk-through-Vegas: each stop a different room)
           var lay = s.layout || "left";
-          // hero title gets a per-letter marquee reveal
-          if (lay === "hero" && !reduce) {
+          // per-letter pop-up title reveal — applied to EVERY title for a
+          // consistent entrance across the whole deck
+          if (!reduce) {
             elTitle.classList.add("letters");
             splitLetters(elTitle);
           } else {
