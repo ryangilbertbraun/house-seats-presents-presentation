@@ -104,9 +104,10 @@
       .scrim.s-bottom {
         background: linear-gradient(
           to top,
-          rgba(16, 11, 20, 0.92) 0%,
-          rgba(16, 11, 20, 0.6) 34%,
-          rgba(16, 11, 20, 0.2) 62%,
+          rgba(16, 11, 20, 0.96) 0%,
+          rgba(16, 11, 20, 0.8) 30%,
+          rgba(16, 11, 20, 0.4) 55%,
+          rgba(16, 11, 20, 0.12) 78%,
           rgba(16, 11, 20, 0.28) 100%
         );
       }
@@ -225,6 +226,29 @@
         top: auto;
         width: auto;
         max-width: none;
+      }
+      /* soft dark pool behind lower-band copy so text reads over bright art */
+      .copy.layout-lower-band::before {
+        content: "";
+        position: absolute;
+        left: -6%;
+        right: -6%;
+        top: -14%;
+        bottom: -30%;
+        z-index: -1;
+        background: radial-gradient(
+          120% 100% at 30% 60%,
+          rgba(16, 11, 20, 0.82) 0%,
+          rgba(16, 11, 20, 0.55) 45%,
+          rgba(16, 11, 20, 0) 80%
+        );
+        pointer-events: none;
+      }
+      /* and a text-shadow halo so the type itself never gets lost on bright art */
+      .copy.layout-lower-band .title,
+      .copy.layout-lower-band .eyebrow,
+      .copy.layout-lower-band .caption {
+        text-shadow: 0 2px 14px rgba(16, 11, 20, 0.85);
       }
       /* hero — centered, sits above middle, larger; for the opening title */
       .copy.layout-hero {
