@@ -2096,24 +2096,45 @@
         resize();
         window.addEventListener("resize", resize);
 
-        // ── image loader (optional base art + layers per scene) ──
+        // ── image loader — preload & decode ALL scene art up front so nothing
+        //    pops in mid-transition. decode() guarantees the bitmap is ready
+        //    before we assign it, so the first paint of a scene is never plain.
+        function preload(src) {
+          return new Promise(function (resolve) {
+            var im = new Image();
+            im.decoding = "async";
+            im.onload = function () {
+              if (im.decode) {
+                im.decode().then(
+                  function () {
+                    resolve(im);
+                  },
+                  function () {
+                    resolve(im);
+                  },
+                );
+              } else {
+                resolve(im);
+              }
+            };
+            im.onerror = function () {
+              resolve(null);
+            };
+            im.src = src;
+          });
+        }
         SCENES.forEach(function (s) {
           s._img = null;
           if (s.art) {
-            var im = new Image();
-            im.onload = function () {
+            preload(s.art).then(function (im) {
               s._img = im;
-            };
-            im.src = s.art;
+            });
           }
-          // optional stacked layers: { src, blend, motion, amp, speed }
           (s.layers || []).forEach(function (L) {
             L._img = null;
-            var li = new Image();
-            li.onload = function () {
-              L._img = li;
-            };
-            li.src = L.src;
+            preload(L.src).then(function (im) {
+              L._img = im;
+            });
           });
         });
 
@@ -2410,22 +2431,27 @@
         // shared cover-fit box (so base + layers register perfectly), with
         // a gentle ken-burns applied to the whole stack
         function coverBox(iw, ih, t) {
+          // gentle ken-burns; `t` here is elapsed-since-scene-entered so every
+          // scene eases out from a calm centered position (no mid-drift pop).
           var scale =
             Math.max(W / iw, H / ih) *
-            (1.04 + 0.04 * (0.5 + 0.5 * Math.sin(t * 0.00012)));
+            (1.05 + 0.035 * (0.5 - 0.5 * Math.cos(t * 0.00009)));
           var dw = iw * scale,
             dh = ih * scale;
           return {
             dw: dw,
             dh: dh,
-            ox: (W - dw) / 2 + Math.sin(t * 0.0001) * 16,
-            oy: (H - dh) / 2 + Math.cos(t * 0.00009) * 12,
+            ox: (W - dw) / 2 + Math.sin(t * 0.00008) * 14,
+            oy: (H - dh) / 2 + Math.sin(t * 0.00007) * 10,
           };
         }
 
         function paintImage(s, t) {
           var img = s._img;
-          var b = coverBox(img.naturalWidth, img.naturalHeight, t);
+          // per-scene local time so the pan/zoom starts fresh for each scene
+          var lt = t - (s._enterT || 0);
+          if (lt < 0) lt = 0;
+          var b = coverBox(img.naturalWidth, img.naturalHeight, lt);
           ctx.drawImage(img, b.ox, b.oy, b.dw, b.dh);
           s._box = b; // remember so layers share the same fit
         }
@@ -2539,6 +2565,8 @@
           tPrev = 0,
           fade = 1; // fade: 0..1 into cur
         var startT = performance.now();
+        var lastNow = startT;
+        var FADE_MS = 1400; // crossfade duration, time-based (frame-rate safe)
 
         function drawScene(s, t) {
           if (s._img) {
@@ -2574,15 +2602,20 @@
 
         function loop(now) {
           var t = now - startT;
+          var dt = now - lastNow;
+          lastNow = now;
           ctx.clearRect(0, 0, W, H);
-          // during a transition, draw prev fading out then cur fading in
+          // during a transition: draw the INCOMING scene fully, then the
+          // OUTGOING scene on top fading away. Incoming is never dimmed, so
+          // there's no dark dip in the middle of the crossfade.
           if (fade < 1 && prev >= 0) {
             ctx.globalAlpha = 1;
-            drawScene(SCENES[prev], t);
-            ctx.globalAlpha = ease(fade);
             drawScene(SCENES[cur], t);
+            ctx.globalAlpha = 1 - ease(fade);
+            drawScene(SCENES[prev], t);
             ctx.globalAlpha = 1;
-            fade += reduce ? 1 : 0.011;
+            // time-based advance (frame-rate independent)
+            fade += reduce ? 1 : dt / FADE_MS;
             if (fade >= 1) {
               fade = 1;
               prev = -1;
@@ -2592,8 +2625,9 @@
           }
           requestAnimationFrame(loop);
         }
+        // ease-in-out cubic — gentler start & finish than smoothstep
         function ease(x) {
-          return x * x * (3 - 2 * x);
+          return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
         }
         requestAnimationFrame(loop);
 
@@ -2658,12 +2692,14 @@
               prev = cur;
               cur = i;
               fade = 0;
+              SCENES[cur]._enterT = performance.now() - startT;
               renderCopy(cur);
             },
             reduce ? 0 : 480,
           );
         }
 
+        SCENES[0]._enterT = 0;
         renderCopy(0);
 
         // ── navigation: wheel / keys / swipe ──
