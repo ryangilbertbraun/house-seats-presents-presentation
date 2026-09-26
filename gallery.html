@@ -384,74 +384,151 @@
       }
       /* house floor — a marquee of voices: two rows of glass speech bubbles
          scrolling opposite directions, the buzz of the conversation. */
-      .c-buzz {
-        width: 100vw;
-        max-width: none;
-        margin-left: calc(50% - 50vw); /* break out to full viewport width */
-        margin-top: 4px;
+      /* house floor — a LIVE FEED: an event/offering rises in, chat bubbles +
+         likes pop around it, then it fades and the next one appears. JS-driven. */
+      .c-live-feed {
+        position: relative;
+        height: 300px;
+        max-width: 720px;
+        margin: 0 auto;
       }
-      .buzz-row {
-        overflow: hidden;
-        padding: 7px 0;
-        /* fade the edges so bubbles enter/exit softly */
-        -webkit-mask: linear-gradient(
-          to right,
-          transparent 0,
-          #000 12%,
-          #000 88%,
-          transparent 100%
+      .feed-stage {
+        position: absolute;
+        inset: 0;
+      }
+      /* the central event/offering card */
+      .feed-event {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -46%);
+        width: min(340px, 74vw);
+        text-align: left;
+        background: linear-gradient(
+          160deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(30, 22, 38, 0.4)
         );
-        mask: linear-gradient(
-          to right,
-          transparent 0,
-          #000 12%,
-          #000 88%,
-          transparent 100%
-        );
+        -webkit-backdrop-filter: blur(14px) saturate(1.1);
+        backdrop-filter: blur(14px) saturate(1.1);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14px;
+        padding: 15px 17px;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          0 20px 50px rgba(0, 0, 0, 0.45);
+        opacity: 0;
       }
-      .buzz-track {
-        display: inline-flex;
-        gap: 12px;
-        white-space: nowrap;
-        will-change: transform;
-        animation: buzzScroll 42s linear infinite;
+      .feed-event.in {
+        animation: feedCardIn 0.6s var(--ease) forwards;
       }
-      .buzz-row.rev .buzz-track {
-        animation-direction: reverse;
-        animation-duration: 48s;
+      .feed-event.out {
+        animation: feedCardOut 0.5s var(--ease) forwards;
       }
-      @keyframes buzzScroll {
+      @keyframes feedCardIn {
         from {
-          transform: translateX(0);
+          opacity: 0;
+          transform: translate(-50%, -30%) scale(0.96);
         }
         to {
-          transform: translateX(-50%);
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
         }
       }
-      .bub {
-        flex: none;
+      @keyframes feedCardOut {
+        from {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: translate(-50%, -62%) scale(0.98);
+        }
+      }
+      .feed-event .k {
         font-family: var(--font-sans);
-        font-size: 13px;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent-hover);
+      }
+      .feed-event .ttl {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 17px;
+        color: var(--fg);
+        line-height: 1.2;
+        margin: 6px 0 4px;
+      }
+      .feed-event .meta {
+        font-family: var(--font-sans);
+        font-size: 11px;
+        color: var(--fg-muted);
+      }
+      /* the reaction bubbles + likes that pop around the card */
+      .feed-pop {
+        position: absolute;
+        font-family: var(--font-sans);
+        font-size: 12px;
         color: var(--fg);
         background: linear-gradient(
           160deg,
-          rgba(255, 255, 255, 0.08),
-          rgba(30, 22, 38, 0.34)
+          rgba(255, 255, 255, 0.1),
+          rgba(30, 22, 38, 0.36)
         );
         -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 999px 999px 999px 4px;
-        padding: 9px 16px;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px 999px 999px 5px;
+        padding: 7px 13px;
+        white-space: nowrap;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
+        opacity: 0;
+        transform: translateY(8px) scale(0.9);
       }
-      .bub.gold {
-        border-color: rgba(244, 197, 106, 0.5);
+      .feed-pop.like {
+        border-radius: 999px;
         color: var(--gold);
+        border-color: rgba(244, 197, 106, 0.5);
+        font-weight: 700;
       }
-      .bub.violet {
+      .feed-pop.violet {
         border-color: rgba(201, 160, 255, 0.5);
         color: var(--violet);
+      }
+      .feed-pop.show {
+        animation: feedPopIn 0.44s cubic-bezier(0.16, 1.28, 0.3, 1) forwards;
+      }
+      .feed-pop.hide {
+        animation: feedPopOut 0.4s var(--ease) forwards;
+      }
+      @keyframes feedPopIn {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      @keyframes feedPopOut {
+        from {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-10px) scale(0.96);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .feed-event,
+        .feed-pop {
+          animation: none !important;
+          opacity: 1 !important;
+          transform: translate(-50%, -50%) !important;
+        }
+        .feed-pop {
+          transform: none !important;
+        }
       }
       .buzz-caps {
         display: flex;
@@ -2252,40 +2329,11 @@
             palette: ["#c9a0ff", "#dc2626", "#f4c56a"],
             flourish: ["warmth", "motes"],
             content:
-              '<div class="c-buzz">' +
-              // row 1 — voices drifting left; duplicated inline for a seamless loop
-              '<div class="buzz-row"><div class="buzz-track">' +
-              '<span class="bub">Who&rsquo;s playing the Colosseum this weekend?</span>' +
-              '<span class="bub gold">Best late table on the Strip?</span>' +
-              '<span class="bub">DM me your +1 &mdash; I&rsquo;ve got two.</span>' +
-              '<span class="bub violet">Anyone going to the residency opener?</span>' +
-              '<span class="bub">Where&rsquo;s the after-party?</span>' +
-              // duplicate set
-              '<span class="bub">Who&rsquo;s playing the Colosseum this weekend?</span>' +
-              '<span class="bub gold">Best late table on the Strip?</span>' +
-              '<span class="bub">DM me your +1 &mdash; I&rsquo;ve got two.</span>' +
-              '<span class="bub violet">Anyone going to the residency opener?</span>' +
-              '<span class="bub">Where&rsquo;s the after-party?</span>' +
-              "</div></div>" +
-              // row 2 — voices drifting right
-              '<div class="buzz-row rev"><div class="buzz-track">' +
-              '<span class="bub violet">The chef&rsquo;s counter, 10pm &mdash; who&rsquo;s in?</span>' +
-              '<span class="bub">Just followed the venue&rsquo;s page.</span>' +
-              '<span class="bub gold">Front row or the lounge tonight?</span>' +
-              '<span class="bub">Message the host for the guest list.</span>' +
-              '<span class="bub">This week&rsquo;s issue is 🔥</span>' +
-              '<span class="bub violet">The chef&rsquo;s counter, 10pm &mdash; who&rsquo;s in?</span>' +
-              '<span class="bub">Just followed the venue&rsquo;s page.</span>' +
-              '<span class="bub gold">Front row or the lounge tonight?</span>' +
-              '<span class="bub">Message the host for the guest list.</span>' +
-              '<span class="bub">This week&rsquo;s issue is 🔥</span>' +
-              "</div></div>" +
-              // capabilities called out beneath the buzz
+              '<div class="c-live-feed"><div class="feed-stage" id="feedStage"></div></div>' +
               '<div class="buzz-caps">' +
               "<span><b>Profiles</b> you&rsquo;re someone in the scene</span>" +
               "<span><b>Messaging</b> talk to anyone &mdash; members, identities, teams</span>" +
               "<span><b>The conversation</b> all of it, through House</span>" +
-              "</div>" +
               "</div>",
           },
           // 5 — THE BOOKING (the goal)
@@ -3181,6 +3229,124 @@
           root.style.setProperty("--n", idx.n);
         }
 
+        // ── House Floor live feed: rotate events; pop reactions around each ──
+        var FEED_EVENTS = [
+          {
+            k: "Now on the bill",
+            t: "Residency Opener &mdash; The Colosseum",
+            m: "Sat · 9pm · 812 members going",
+            pops: [
+              { x: 4, y: 10, cls: "", txt: "Front row or lounge?" },
+              { x: 66, y: 4, cls: "like", txt: "\u2665 214" },
+              { x: 72, y: 62, cls: "violet", txt: "DM me your +1" },
+              { x: 2, y: 68, cls: "", txt: "See you there \ud83c\udf7e" },
+            ],
+          },
+          {
+            k: "Tonight · dining",
+            t: "The Chef&rsquo;s Counter",
+            m: "10pm · 6 seats left · hosted by House Eats",
+            pops: [
+              { x: 6, y: 8, cls: "violet", txt: "Who&rsquo;s in?" },
+              { x: 64, y: 6, cls: "like", txt: "\u2665 98" },
+              { x: 70, y: 60, cls: "", txt: "Booked table for 4" },
+              { x: 3, y: 66, cls: "", txt: "Best meal in Vegas" },
+            ],
+          },
+          {
+            k: "This week&rsquo;s issue",
+            t: "The New Era of Vegas Nightlife",
+            m: "Cover story · 3,400 reads today",
+            pops: [
+              { x: 5, y: 9, cls: "", txt: "This is \ud83d\udd25" },
+              { x: 68, y: 5, cls: "like", txt: "\u2665 502" },
+              { x: 66, y: 63, cls: "violet", txt: "Sharing with my crew" },
+              { x: 2, y: 67, cls: "", txt: "Saved for the weekend" },
+            ],
+          },
+          {
+            k: "Artist drop",
+            t: "Backstage with the Headliner",
+            m: "New interview · followed by 1.2k",
+            pops: [
+              { x: 4, y: 8, cls: "violet", txt: "Following the page" },
+              { x: 67, y: 6, cls: "like", txt: "\u2665 361" },
+              { x: 70, y: 62, cls: "", txt: "Legend." },
+              { x: 3, y: 66, cls: "", txt: "Tickets when?" },
+            ],
+          },
+          {
+            k: "Member meetup",
+            t: "Pre-Show at the Lobby Bar",
+            m: "Fri · 7pm · 140 RSVPs",
+            pops: [
+              { x: 6, y: 10, cls: "", txt: "Bringing friends" },
+              { x: 65, y: 5, cls: "like", txt: "\u2665 187" },
+              { x: 71, y: 61, cls: "violet", txt: "First round&rsquo;s on me" },
+              { x: 2, y: 68, cls: "", txt: "Count me in" },
+            ],
+          },
+        ];
+        var feedTimers = [];
+        var feedIdx = 0;
+        function stopFeed() {
+          feedTimers.forEach(clearTimeout);
+          feedTimers = [];
+        }
+        function startFeed(stage) {
+          feedIdx = 0;
+          function cycle() {
+            var ev = FEED_EVENTS[feedIdx % FEED_EVENTS.length];
+            feedIdx++;
+            stage.innerHTML = "";
+            // event card in
+            var card = document.createElement("div");
+            card.className = "feed-event in";
+            card.innerHTML =
+              '<span class="k">' +
+              ev.k +
+              "</span>" +
+              '<div class="ttl">' +
+              ev.t +
+              "</div>" +
+              '<div class="meta">' +
+              ev.m +
+              "</div>";
+            stage.appendChild(card);
+            // reactions pop in, staggered
+            ev.pops.forEach(function (p, j) {
+              var el = document.createElement("div");
+              el.className = "feed-pop " + (p.cls || "");
+              el.style.left = p.x + "%";
+              el.style.top = p.y + "%";
+              el.innerHTML = p.txt;
+              stage.appendChild(el);
+              feedTimers.push(
+                setTimeout(
+                  function () {
+                    el.classList.add("show");
+                  },
+                  700 + j * 380,
+                ),
+              );
+            });
+            // fade everything out near the end of the dwell
+            feedTimers.push(
+              setTimeout(function () {
+                card.classList.remove("in");
+                card.classList.add("out");
+                stage.querySelectorAll(".feed-pop").forEach(function (el) {
+                  el.classList.remove("show");
+                  el.classList.add("hide");
+                });
+              }, 4200),
+            );
+            // next event
+            feedTimers.push(setTimeout(cycle, 4900));
+          }
+          cycle();
+        }
+
         function scrimClassFor(lay) {
           var m = {
             right: "s-right",
@@ -3236,6 +3402,10 @@
             // safety fallback in case load already fired or is blocked
             setTimeout(hideLoad, 6000);
           }
+          // if this scene has the House Floor live feed, (re)start its cycle
+          stopFeed();
+          var feedStage = document.getElementById("feedStage");
+          if (feedStage && !reduce) startFeed(feedStage);
           // retrigger reveal
           elCopy.classList.remove("show");
           void elCopy.offsetWidth;
