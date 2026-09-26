@@ -1876,20 +1876,24 @@
       /* glass/backdrop-filter cards: fade with OPACITY ONLY — animating a
          transform on a backdrop-filtered element forces costly per-frame
          recompositing and makes the last card lag/pop. Opacity is cheap. */
+      /* glass / backdrop-filter cards do NOT fade in — animating opacity shows
+         the card before the blur is composited (it "pops in" un-morphed). So
+         they render fully-composited from the start; the scene crossfade is
+         their entrance. */
       .content > * > .c-act,
       .content > * > .c-wo,
       .content > * > .c-bud,
       .content > * > .glass,
-      .content > * > .c-tier {
-        transform: none !important;
-        transition: opacity 0.55s var(--ease) !important;
-      }
+      .content > * > .c-tier,
       .copy.show .content > * > .c-act,
       .copy.show .content > * > .c-wo,
       .copy.show .content > * > .c-bud,
       .copy.show .content > * > .glass,
       .copy.show .content > * > .c-tier {
+        opacity: 1 !important;
         transform: none !important;
+        transition: none !important;
+        transition-delay: 0s !important;
       }
       .copy.show .content > * > *:nth-child(1) {
         transition-delay: 0.6s;
@@ -2819,7 +2823,7 @@
               '<tr class="total"><td>Annualized</td><td class="n accent">$300,000</td></tr>' +
               "</tbody></table>",
           },
-          // 5 — ON THE BILL (Presents, the first release) + live POC
+          // 6 — ON THE BILL (Presents, the first release) + live POC
           {
             kind: "product",
             layout: "left",
@@ -2837,7 +2841,7 @@
               '<div class="win"><div class="c-load" id="pocLoad"><span class="ring"></span><span class="lbl">Loading preview…</span></div><iframe id="pocFrame" src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
               "</div>",
           },
-          // 6 — THE FOUR ACTS (the arc)
+          // 7 — THE FOUR ACTS (the arc)
           {
             kind: "arc",
             layout: "left",
@@ -2856,7 +2860,7 @@
               '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="d">Take the proven playbook &mdash; Presents, Seats and Eats under one brand &mdash; on tour, city by city.</span><span class="m">Every city<small>the national tour</small></span></div>' +
               "</div>",
           },
-          // 7 — THE BOX OFFICE (how the money compounds)
+          // 8 — THE BOX OFFICE (how the money compounds)
           {
             kind: "boxoffice",
             layout: "right",
@@ -2875,7 +2879,7 @@
               '<div class="c-metric"><div class="v gold">National</div><div class="l">Brand outcome</div></div>' +
               "</div>",
           },
-          // 8 — THE HOUSE (conversion funnel)
+          // 9 — THE HOUSE (conversion funnel)
           {
             kind: "funnel",
             layout: "right",
@@ -2896,7 +2900,7 @@
               '<div class="c-fstep"><div class="c-fbar" style="width:28%;background:#7cdba8;color:#14100a">Retained</div><span class="c-fmeta">retention</span></div>' +
               "</div>",
           },
-          // 9 — THE PREVIEW (October 25 — Work Order 1)
+          // 10 — THE PREVIEW (October 25 — Work Order 1)
           {
             kind: "preview",
             layout: "lower-band",
@@ -2913,7 +2917,7 @@
               '<div class="glass"><span class="k" style="color:var(--gold)">What we learn</span><p style="margin-top:8px">Members reached · survey starts &amp; completions · interest/waitlist conversion · email engagement · usable qualitative feedback.</p></div>' +
               "</div>",
           },
-          // 10 — THE PRODUCTION SCHEDULE (roadmap)
+          // 11 — THE PRODUCTION SCHEDULE (roadmap)
           {
             kind: "roadmap",
             layout: "left",
@@ -2933,7 +2937,7 @@
               '<div class="c-tl peak"><span class="w">January 1</span><div><div class="t">Opening night (WO 3)</div><div class="d">Curtain up on Presents &mdash; monitor conversion, support subscribers, optimize across the first 30/60/90 days.</div></div></div>' +
               "</div>",
           },
-          // 11 — TICKET ECONOMICS
+          // 12 — TICKET ECONOMICS
           {
             kind: "ticket",
             layout: "left",
@@ -2952,7 +2956,7 @@
               '<tr class="total"><td>Annual fee load</td><td class="n" style="color:var(--success)">~3.4%</td></tr>' +
               "</tbody></table>",
           },
-          // 12 — THE WORK ORDERS (staged ladder)
+          // 13 — THE WORK ORDERS (staged ladder)
           {
             kind: "workorders",
             layout: "center",
@@ -2972,7 +2976,7 @@
               '<div class="c-wo"><span class="st">WO 5</span><span class="nm">House Eats + The Tour<small>commerce line, then the playbook city by city</small></span><span class="amt">scoped<small>long horizon</small></span></div>' +
               "</div>",
           },
-          // 13 — STAGE MANAGEMENT & RISK
+          // 14 — STAGE MANAGEMENT & RISK
           {
             kind: "governance",
             layout: "center",
@@ -2993,7 +2997,7 @@
               '<div class="c-rrow"><strong>Unknown platform condition</strong><span class="c-sev md">Med</span><span class="c-sev hi">High</span><span>POC is staged; discovery first, estimates flagged.</span></div>' +
               "</div>",
           },
-          // 14 — THE ASK (approve Work Order 1)
+          // 15 — THE ASK (approve Work Order 1)
           {
             kind: "ask",
             layout: "center",
@@ -3012,7 +3016,7 @@
               '<div class="row"><span><b>Unlocks:</b> a data-backed go/no-go on the January build</span></div>' +
               "</div>",
           },
-          // 15 — CURTAIN CALL (closing)
+          // 16 — CURTAIN CALL (closing)
           {
             kind: "closing",
             layout: "center",
@@ -3032,7 +3036,7 @@
               '<div class="c-metric"><div class="v gold">On tour</div><div class="l">The finale</div></div>' +
               "</div>",
           },
-          // 16 — SERVICES (rate-card addendum)
+          // 17 — SERVICES (rate-card addendum)
           {
             kind: "services",
             layout: "center",
