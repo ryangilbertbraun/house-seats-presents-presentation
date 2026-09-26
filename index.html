@@ -382,6 +382,110 @@
         gap: 14px;
         text-align: left;
       }
+      /* house floor — a marquee of voices: two rows of glass speech bubbles
+         scrolling opposite directions, the buzz of the conversation. */
+      .c-buzz {
+        width: 100vw;
+        max-width: none;
+        margin-left: calc(50% - 50vw); /* break out to full viewport width */
+        margin-top: 4px;
+      }
+      .buzz-row {
+        overflow: hidden;
+        padding: 7px 0;
+        /* fade the edges so bubbles enter/exit softly */
+        -webkit-mask: linear-gradient(
+          to right,
+          transparent 0,
+          #000 12%,
+          #000 88%,
+          transparent 100%
+        );
+        mask: linear-gradient(
+          to right,
+          transparent 0,
+          #000 12%,
+          #000 88%,
+          transparent 100%
+        );
+      }
+      .buzz-track {
+        display: inline-flex;
+        gap: 12px;
+        white-space: nowrap;
+        will-change: transform;
+        animation: buzzScroll 42s linear infinite;
+      }
+      .buzz-row.rev .buzz-track {
+        animation-direction: reverse;
+        animation-duration: 48s;
+      }
+      @keyframes buzzScroll {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      .bub {
+        flex: none;
+        font-family: var(--font-sans);
+        font-size: 13px;
+        color: var(--fg);
+        background: linear-gradient(
+          160deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(30, 22, 38, 0.34)
+        );
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 999px 999px 999px 4px;
+        padding: 9px 16px;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+      }
+      .bub.gold {
+        border-color: rgba(244, 197, 106, 0.5);
+        color: var(--gold);
+      }
+      .bub.violet {
+        border-color: rgba(201, 160, 255, 0.5);
+        color: var(--violet);
+      }
+      .buzz-caps {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px 28px;
+        margin-top: 20px;
+        padding: 0 20px;
+      }
+      .buzz-caps span {
+        font-family: var(--font-sans);
+        font-size: 11.5px;
+        color: var(--fg-muted);
+      }
+      .buzz-caps b {
+        color: var(--fg);
+        font-weight: 700;
+        margin-right: 6px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .buzz-track {
+          animation: none;
+        }
+      }
+      @media (max-width: 720px) {
+        .bub {
+          font-size: 12px;
+        }
+        .buzz-caps {
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+      }
       .glass {
         background: rgba(30, 22, 38, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2097,18 +2201,19 @@
             content:
               '<div class="c-order">' +
               '<div class="c-ord"><span class="n">01</span><span class="t">The vision &mdash; three experiences, one brand</span></div>' +
-              '<div class="c-ord"><span class="n">02</span><span class="t">The booking &mdash; the goal</span></div>' +
-              '<div class="c-ord"><span class="n">03</span><span class="t">On the bill &mdash; Presents</span></div>' +
-              '<div class="c-ord"><span class="n">04</span><span class="t">The four acts</span></div>' +
-              '<div class="c-ord"><span class="n">05</span><span class="t">The box office</span></div>' +
-              '<div class="c-ord"><span class="n">06</span><span class="t">The house &mdash; the funnel</span></div>' +
-              '<div class="c-ord"><span class="n">07</span><span class="t">The preview &mdash; Oct 25</span></div>' +
-              '<div class="c-ord"><span class="n">08</span><span class="t">The production schedule</span></div>' +
-              '<div class="c-ord"><span class="n">09</span><span class="t">Ticket economics</span></div>' +
-              '<div class="c-ord"><span class="n">10</span><span class="t">The work orders</span></div>' +
-              '<div class="c-ord"><span class="n">11</span><span class="t">Stage management &amp; risk</span></div>' +
-              '<div class="c-ord"><span class="n">12</span><span class="t">The ask</span></div>' +
-              '<div class="c-ord"><span class="n">13</span><span class="t">Curtain call</span></div>' +
+              '<div class="c-ord"><span class="n">02</span><span class="t">The House Floor &mdash; the community</span></div>' +
+              '<div class="c-ord"><span class="n">03</span><span class="t">The booking &mdash; the goal</span></div>' +
+              '<div class="c-ord"><span class="n">04</span><span class="t">On the bill &mdash; Presents</span></div>' +
+              '<div class="c-ord"><span class="n">05</span><span class="t">The four acts</span></div>' +
+              '<div class="c-ord"><span class="n">06</span><span class="t">The box office</span></div>' +
+              '<div class="c-ord"><span class="n">07</span><span class="t">The house &mdash; the funnel</span></div>' +
+              '<div class="c-ord"><span class="n">08</span><span class="t">The preview &mdash; Oct 25</span></div>' +
+              '<div class="c-ord"><span class="n">09</span><span class="t">The production schedule</span></div>' +
+              '<div class="c-ord"><span class="n">10</span><span class="t">Ticket economics</span></div>' +
+              '<div class="c-ord"><span class="n">11</span><span class="t">The work orders</span></div>' +
+              '<div class="c-ord"><span class="n">12</span><span class="t">Stage management &amp; risk</span></div>' +
+              '<div class="c-ord"><span class="n">13</span><span class="t">The ask</span></div>' +
+              '<div class="c-ord"><span class="n">14</span><span class="t">Curtain call</span></div>' +
               "</div>",
           },
           // 3 — THE VISION (the umbrella: one brand, three tiers) + rebrand compare
@@ -2135,7 +2240,55 @@
               "</div>" +
               "</div>",
           },
-          // 4 — THE BOOKING (the goal)
+          // 4 — THE HOUSE FLOOR (community — the connective social layer)
+          {
+            kind: "floor",
+            layout: "center",
+            art: "assets/scenes/housefloor.png",
+            eyebrow: "The House Floor",
+            title: "Not a publisher. <em>The center of the conversation.</em>",
+            caption:
+              "The House Floor is the connective layer beneath every product &mdash; profiles, messaging and identities that turn an audience into a community. Presents, Seats and Eats all plug into it, so the same people, the same conversation follow you everywhere. <strong>House is the source.</strong>",
+            palette: ["#c9a0ff", "#dc2626", "#f4c56a"],
+            flourish: ["warmth", "motes"],
+            content:
+              '<div class="c-buzz">' +
+              // row 1 — voices drifting left; duplicated inline for a seamless loop
+              '<div class="buzz-row"><div class="buzz-track">' +
+              '<span class="bub">Who&rsquo;s playing the Colosseum this weekend?</span>' +
+              '<span class="bub gold">Best late table on the Strip?</span>' +
+              '<span class="bub">DM me your +1 &mdash; I&rsquo;ve got two.</span>' +
+              '<span class="bub violet">Anyone going to the residency opener?</span>' +
+              '<span class="bub">Where&rsquo;s the after-party?</span>' +
+              // duplicate set
+              '<span class="bub">Who&rsquo;s playing the Colosseum this weekend?</span>' +
+              '<span class="bub gold">Best late table on the Strip?</span>' +
+              '<span class="bub">DM me your +1 &mdash; I&rsquo;ve got two.</span>' +
+              '<span class="bub violet">Anyone going to the residency opener?</span>' +
+              '<span class="bub">Where&rsquo;s the after-party?</span>' +
+              "</div></div>" +
+              // row 2 — voices drifting right
+              '<div class="buzz-row rev"><div class="buzz-track">' +
+              '<span class="bub violet">The chef&rsquo;s counter, 10pm &mdash; who&rsquo;s in?</span>' +
+              '<span class="bub">Just followed the venue&rsquo;s page.</span>' +
+              '<span class="bub gold">Front row or the lounge tonight?</span>' +
+              '<span class="bub">Message the host for the guest list.</span>' +
+              '<span class="bub">This week&rsquo;s issue is 🔥</span>' +
+              '<span class="bub violet">The chef&rsquo;s counter, 10pm &mdash; who&rsquo;s in?</span>' +
+              '<span class="bub">Just followed the venue&rsquo;s page.</span>' +
+              '<span class="bub gold">Front row or the lounge tonight?</span>' +
+              '<span class="bub">Message the host for the guest list.</span>' +
+              '<span class="bub">This week&rsquo;s issue is 🔥</span>' +
+              "</div></div>" +
+              // capabilities called out beneath the buzz
+              '<div class="buzz-caps">' +
+              "<span><b>Profiles</b> you&rsquo;re someone in the scene</span>" +
+              "<span><b>Messaging</b> talk to anyone &mdash; members, identities, teams</span>" +
+              "<span><b>The conversation</b> all of it, through House</span>" +
+              "</div>" +
+              "</div>",
+          },
+          // 5 — THE BOOKING (the goal)
           {
             kind: "booking",
             layout: "right",
@@ -2163,7 +2316,7 @@
             eyebrow: "On the Bill · Presents",
             title: "A weekly issue worth <em>showing up for</em>.",
             caption:
-              "House Seats Presents is the first release &mdash; a weekly editorial membership, a magazine, not a coupon book. It&rsquo;s already staged and test-ready.",
+              "House Seats Presents is the first release &mdash; a weekly editorial membership, a magazine, not a coupon book. And it opens onto <strong>The House Floor</strong>: profiles, messaging and the conversation, from day one. Already staged and test-ready.",
             palette: ["#dc2626", "#f4c56a", "#c9a0ff"],
             flourish: ["warmth"],
             content:
@@ -2181,7 +2334,7 @@
             eyebrow: "The Four Acts",
             title: "A production that builds to a <em>national tour</em>.",
             caption:
-              "Each act pays for the next. Presents launches first and funds the restaging of House Seats itself; the restaged core carries House Eats, and the whole house travels on tour. We prove the show one act at a time.",
+              "Each act pays for the next. Presents launches first and funds the restaging of House Seats; the restaged core carries House Eats; the whole house travels on tour. <strong>The House Floor runs through all of it</strong> &mdash; one community, every act.",
             palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
             flourish: ["warmth"],
             content:
@@ -2219,7 +2372,7 @@
             eyebrow: "The House · Analytics & KPIs",
             title: "How we fill the seats &mdash;<br />and <em>keep them</em>.",
             caption:
-              "From the street to a subscriber in their seat: audience &rarr; email &rarr; site &rarr; interest &rarr; subscription &rarr; retention. Every row has a number we track.",
+              "From the street to a subscriber in their seat: audience &rarr; email &rarr; site &rarr; interest &rarr; subscription &rarr; retention. What keeps them is <strong>The House Floor</strong> &mdash; community is the strongest retention there is. Every row has a number we track.",
             palette: ["#dc2626", "#7b3fb0", "#f4c56a"],
             flourish: ["warmth"],
             content:
