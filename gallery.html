@@ -112,6 +112,24 @@
           rgba(16, 11, 20, 0.28) 100%
         );
       }
+      /* left-weighted — darkens the LEFT side of the image (for lower-band /
+         left-anchored copy), fading to clear on the right like natural lighting */
+      .scrim.s-left {
+        background:
+          linear-gradient(
+            to right,
+            rgba(16, 11, 20, 0.92) 0%,
+            rgba(16, 11, 20, 0.78) 30%,
+            rgba(16, 11, 20, 0.42) 58%,
+            rgba(16, 11, 20, 0.12) 82%,
+            rgba(16, 11, 20, 0) 100%
+          ),
+          linear-gradient(
+            to top,
+            rgba(16, 11, 20, 0.34) 0%,
+            rgba(16, 11, 20, 0) 40%
+          );
+      }
       /* hero — strong readable pool behind centered title (for layout-hero) */
       .scrim.s-hero {
         background:
@@ -219,34 +237,20 @@
       /* lower band across the bottom (wide, for strips) */
       .copy.layout-lower-band {
         left: clamp(28px, 7vw, 96px);
-        right: clamp(28px, 7vw, 96px);
-        bottom: clamp(56px, 10vh, 110px);
-        top: auto;
-        width: auto;
+        right: auto;
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
+        width: min(660px, 62vw);
         max-width: none;
       }
       /* soft dark pool behind lower-band copy so text reads over bright art */
-      .copy.layout-lower-band::before {
-        content: "";
-        position: absolute;
-        left: -6%;
-        right: -6%;
-        top: -14%;
-        bottom: -30%;
-        z-index: -1;
-        background: radial-gradient(
-          120% 100% at 30% 60%,
-          rgba(16, 11, 20, 0.82) 0%,
-          rgba(16, 11, 20, 0.55) 45%,
-          rgba(16, 11, 20, 0) 80%
-        );
-        pointer-events: none;
-      }
-      /* and a text-shadow halo so the type itself never gets lost on bright art */
+      /* text-shadow halo so type never gets lost; the LEFT-side darkening is
+         handled by the scrim (s-left) rather than a visible box behind the copy */
       .copy.layout-lower-band .title,
       .copy.layout-lower-band .eyebrow,
       .copy.layout-lower-band .caption {
-        text-shadow: 0 2px 14px rgba(16, 11, 20, 0.85);
+        text-shadow: 0 2px 14px rgba(16, 11, 20, 0.7);
       }
       /* hero — centered, sits above middle, larger; for the opening title */
       .copy.layout-hero {
@@ -384,6 +388,50 @@
         border-radius: 12px;
         padding: 16px 18px;
         backdrop-filter: blur(8px);
+      }
+      /* ── unified glassmorphism across all card components ──
+         one place so every panel gets the same frosted look + subtle sheen. */
+      .glass,
+      .c-bud,
+      .c-set,
+      .c-wo,
+      .c-tier,
+      .c-rrow {
+        position: relative;
+        background: linear-gradient(
+          160deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(30, 22, 38, 0.3)
+        ) !important;
+        -webkit-backdrop-filter: blur(13px) saturate(1.1);
+        backdrop-filter: blur(13px) saturate(1.1);
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 12px 32px rgba(0, 0, 0, 0.32);
+        overflow: hidden;
+      }
+      .glass::after,
+      .c-bud::after,
+      .c-set::after,
+      .c-tier::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          130deg,
+          rgba(255, 255, 255, 0.09) 0%,
+          rgba(255, 255, 255, 0) 42%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+      .glass > *,
+      .c-bud > *,
+      .c-set > *,
+      .c-tier > * {
+        position: relative;
+        z-index: 1;
       }
       .glass .k {
         font-size: 10px;
@@ -703,8 +751,11 @@
         gap: 6px;
       }
       .c-bud.rec {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 1px var(--accent);
+        border-color: var(--accent) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 0 0 1px var(--accent),
+          0 12px 32px rgba(0, 0, 0, 0.32);
       }
       .c-bud .name {
         font-family: var(--font-serif);
@@ -890,8 +941,11 @@
         padding: 11px 16px;
       }
       .c-wo.now {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 1px var(--accent);
+        border-color: var(--accent) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 0 0 1px var(--accent),
+          0 12px 32px rgba(0, 0, 0, 0.32);
       }
       .c-wo .st {
         font-family: var(--font-sans);
@@ -1203,8 +1257,11 @@
         flex-direction: column;
       }
       .c-tier.built {
-        border-color: rgba(244, 197, 106, 0.5);
-        box-shadow: 0 0 0 1px rgba(244, 197, 106, 0.35);
+        border-color: rgba(244, 197, 106, 0.5) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(244, 197, 106, 0.2),
+          0 0 0 1px rgba(244, 197, 106, 0.35),
+          0 12px 32px rgba(0, 0, 0, 0.32);
       }
       .c-tier .shot {
         height: 96px;
@@ -1329,6 +1386,24 @@
       .copy.show .content > * > * {
         opacity: 1;
         transform: translateY(0);
+      }
+      /* glass/backdrop-filter cards: fade with OPACITY ONLY — animating a
+         transform on a backdrop-filtered element forces costly per-frame
+         recompositing and makes the last card lag/pop. Opacity is cheap. */
+      .content > * > .c-act,
+      .content > * > .c-wo,
+      .content > * > .c-bud,
+      .content > * > .glass,
+      .content > * > .c-tier {
+        transform: none !important;
+        transition: opacity 0.55s var(--ease) !important;
+      }
+      .copy.show .content > * > .c-act,
+      .copy.show .content > * > .c-wo,
+      .copy.show .content > * > .c-bud,
+      .copy.show .content > * > .glass,
+      .copy.show .content > * > .c-tier {
+        transform: none !important;
       }
       .copy.show .content > * > *:nth-child(1) {
         transition-delay: 0.6s;
@@ -2163,7 +2238,7 @@
             layout: "lower-band",
             art: "assets/scenes/preview.png",
             eyebrow: "The Preview · October 25 · Work Order 1",
-            title: "A <em>preview performance</em>, not opening night.",
+            title: "A <em>preview performance,</em><br />not opening night.",
             caption:
               "October 25 is the preview &mdash; a single-page splash, built off the staged proof of concept, that seats an early audience, captures interest, and runs the research that de-risks opening night. <strong>This is the one stage on the table today.</strong> Everything it learns carries straight into the January build.",
             palette: ["#7b3fb0", "#f4c56a", "#dc2626"],
@@ -2957,8 +3032,8 @@
           var m = {
             right: "s-right",
             center: "s-center",
-            "lower-band": "s-bottom",
-            "lower-left": "s-bottom",
+            "lower-band": "s-left",
+            "lower-left": "s-left",
             hero: "s-hero",
           };
           return m[lay] || "";
