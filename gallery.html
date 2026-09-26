@@ -621,12 +621,16 @@
       .feed-pop {
         display: flex;
         align-items: flex-end;
-        gap: 9px;
+        gap: 4px; /* tight so the tail connects to the avatar */
         width: 240px;
         font-family: var(--font-sans);
         opacity: 0;
         /* cascade in from the outer edge toward the center (--dir set per side) */
         transform: translateX(var(--dir, 0px)) scale(0.94);
+      }
+      /* avatar-on-right variant: flip order + point the tail right */
+      .feed-pop.av-right {
+        flex-direction: row-reverse;
       }
       .feed-col.left .feed-pop {
         --dir: -34px;
@@ -646,45 +650,67 @@
         font-weight: 800;
         font-size: 12px;
         color: #14100a;
+        margin-bottom: 2px;
         /* deco double-ring */
         box-shadow:
           inset 0 0 0 1.5px rgba(20, 13, 24, 0.55),
           0 0 0 1px rgba(244, 197, 106, 0.6),
           0 4px 12px rgba(0, 0, 0, 0.4);
       }
-      /* the bubble — oval glass with a small > tail pointing at the avatar */
+      /* the bubble — oval glass with a small tail pointing at the avatar */
       .feed-pop .bd {
         position: relative;
         min-width: 0;
-        background: linear-gradient(
-          158deg,
-          rgba(42, 30, 54, 0.92),
-          rgba(18, 12, 24, 0.94)
-        );
+        background: rgba(34, 24, 44, 0.94);
         -webkit-backdrop-filter: blur(14px) saturate(1.1);
         backdrop-filter: blur(14px) saturate(1.1);
         border: 1px solid rgba(244, 197, 106, 0.3);
-        border-radius: 20px;
+        border-radius: 18px;
         padding: 10px 16px 11px;
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.08),
           0 12px 28px rgba(0, 0, 0, 0.42);
       }
-      /* the > tail on the left edge, pointing toward the avatar */
+      /* tail: a clean triangle in the bubble's exact fill, overlapping the
+         bubble edge so it reads as one seamless shape (no chopped borders). */
       .feed-pop .bd::before {
         content: "";
         position: absolute;
-        left: -6px;
-        bottom: 9px;
+        left: -7px;
+        bottom: 11px;
         width: 12px;
-        height: 12px;
-        background: inherit;
-        border-left: 1px solid rgba(244, 197, 106, 0.3);
-        border-bottom: 1px solid rgba(244, 197, 106, 0.3);
-        border-bottom-left-radius: 3px;
-        transform: rotate(45deg);
-        -webkit-backdrop-filter: blur(14px);
-        backdrop-filter: blur(14px);
+        height: 13px;
+        background: rgba(34, 24, 44, 0.94);
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+      }
+      /* thin gold edge that follows only the tail's outer (hypotenuse) side */
+      .feed-pop .bd::after {
+        content: "";
+        position: absolute;
+        left: -7px;
+        bottom: 11px;
+        width: 12px;
+        height: 13px;
+        background: linear-gradient(
+          225deg,
+          rgba(244, 197, 106, 0.3) 0 1.2px,
+          transparent 1.2px
+        );
+        clip-path: polygon(100% 0, 100% 100%, 0 100%);
+      }
+      /* when the avatar is on the right, mirror the tail to the bubble's right */
+      .feed-pop.av-right .bd::before,
+      .feed-pop.av-right .bd::after {
+        left: auto;
+        right: -7px;
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+      }
+      .feed-pop.av-right .bd::after {
+        background: linear-gradient(
+          135deg,
+          rgba(244, 197, 106, 0.3) 0 1.2px,
+          transparent 1.2px
+        );
       }
       .feed-pop .nm {
         display: block;
@@ -2002,6 +2028,32 @@
         justify-content: center;
         width: 62px;
         height: 62px;
+        /* button reset */
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: inherit;
+        z-index: 61; /* above the nav panel so it can sit on its edge */
+        transition: transform 0.5s var(--ease);
+      }
+      /* when the nav is open, the medallion travels left to the nav's edge and
+         becomes its handle */
+      .counter.docked {
+        transform: translateX(calc(-1 * min(340px, 84vw) + 8px));
+      }
+      /* the deco emblem spins on hover or while the nav is open */
+      .counter:hover .deco-emblem,
+      .counter.docked .deco-emblem {
+        animation: emblemSpin 9s linear infinite;
+      }
+      @keyframes emblemSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .counter:hover .counter-num {
+        color: var(--gold);
       }
       /* soft dark disc so the counter reads over any background image */
       .counter::before {
@@ -2032,6 +2084,119 @@
         color: var(--fg);
         font-variant-numeric: tabular-nums;
         text-shadow: 0 1px 6px rgba(16, 11, 20, 0.8);
+      }
+
+      /* ── jump-to-scene nav — slides in from the right ── */
+      .scene-nav {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: min(340px, 84vw);
+        height: 100%;
+        z-index: 60;
+        background: linear-gradient(
+          200deg,
+          rgba(36, 25, 48, 0.98),
+          rgba(16, 11, 20, 0.98)
+        );
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+        border-left: 1px solid rgba(244, 197, 106, 0.3);
+        box-shadow: -30px 0 80px rgba(0, 0, 0, 0.5);
+        transform: translateX(100%);
+        transition: transform 0.5s var(--ease);
+        display: flex;
+        flex-direction: column;
+        padding: clamp(22px, 4vw, 36px) 0;
+        overflow-y: auto;
+      }
+      .scene-nav.open {
+        transform: translateX(0);
+      }
+      .scene-nav-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 clamp(20px, 3vw, 30px) 16px;
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(244, 197, 106, 0.22);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+      .scene-nav-close {
+        background: none;
+        border: none;
+        color: var(--fg-muted);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 2px;
+        transition: color 0.2s;
+      }
+      .scene-nav-close:hover {
+        color: var(--fg);
+      }
+      .scene-nav-list {
+        list-style: none;
+        margin: 0;
+        padding: 6px 0;
+      }
+      .scene-nav-list li {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        padding: 10px clamp(20px, 3vw, 30px);
+        cursor: pointer;
+        color: var(--fg-muted);
+        transition:
+          color 0.2s,
+          background 0.2s,
+          padding-left 0.2s;
+        border-left: 2px solid transparent;
+      }
+      .scene-nav-list li .n {
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        color: var(--fg-dim);
+        min-width: 20px;
+        font-variant-numeric: tabular-nums;
+      }
+      .scene-nav-list li .t {
+        font-family: var(--font-serif);
+        font-size: 14.5px;
+        line-height: 1.25;
+      }
+      .scene-nav-list li:hover {
+        color: var(--fg);
+        background: rgba(244, 197, 106, 0.06);
+        padding-left: calc(clamp(20px, 3vw, 30px) + 6px);
+      }
+      .scene-nav-list li.on {
+        color: var(--fg);
+        border-left-color: var(--gold);
+        background: rgba(244, 197, 106, 0.08);
+      }
+      .scene-nav-list li.on .n {
+        color: var(--gold);
+      }
+      .scene-nav-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        background: rgba(10, 7, 14, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s var(--ease);
+      }
+      .scene-nav-scrim.open {
+        opacity: 1;
+        pointer-events: auto;
       }
 
       /* down-arrow cue */
@@ -2399,7 +2564,12 @@
 
       <div class="topbar">
         <span class="brand">The House <em>Experience</em></span>
-        <span class="counter">
+        <button
+          class="counter"
+          id="navToggle"
+          aria-label="Jump to a scene"
+          aria-expanded="false"
+        >
           <svg class="deco-emblem" viewBox="0 0 64 64" aria-hidden="true">
             <circle
               cx="32"
@@ -2431,8 +2601,20 @@
             </g>
           </svg>
           <span class="counter-num" id="counter">01 / 05</span>
-        </span>
+        </button>
       </div>
+
+      <!-- jump-to-scene nav (slides in from the right) -->
+      <nav class="scene-nav" id="sceneNav" aria-hidden="true">
+        <div class="scene-nav-head">
+          <span>The Program</span>
+          <button class="scene-nav-close" id="navClose" aria-label="Close">
+            &times;
+          </button>
+        </div>
+        <ol class="scene-nav-list" id="navList"></ol>
+      </nav>
+      <div class="scene-nav-scrim" id="navScrim"></div>
 
       <div class="copy" id="copy">
         <p class="eyebrow" id="eyebrow"></p>
@@ -3536,26 +3718,26 @@
                 x: 0,
                 y: 2,
                 n: "Mia R.",
-                txt: "okay who&rsquo;s actually pulling up sat?? front row or we doing the lounge 👀",
+                txt: "who&rsquo;s pulling up sat?? front row?? 👀",
               },
               { x: 40, y: -4, cls: "like", txt: "\u2665 214" },
               {
                 x: 80,
                 y: 12,
                 n: "Deon",
-                txt: "got 2 extra tix, DM me before they&rsquo;re gone 🎟️🔥",
+                txt: "got 2 extra tix, DM me 🎟️🔥",
               },
               {
                 x: 1,
                 y: 66,
                 n: "Jules",
-                txt: "heard the setlist got leaked and it&rsquo;s INSANE, no spoilers tho 🤐",
+                txt: "setlist leaked and it&rsquo;s INSANE 🤐",
               },
               {
                 x: 79,
                 y: 72,
                 n: "Priya",
-                txt: "table booked, after-party at mine, bring the crew 🍾🍾",
+                txt: "after-party at mine, bring the crew 🍾",
               },
               { x: 44, y: 96, cls: "like violet", txt: "12 friends going" },
             ],
@@ -3571,26 +3753,26 @@
                 x: 0,
                 y: 2,
                 n: "Tasha",
-                txt: "the omakase here is unreal, genuinely the best meal I&rsquo;ve had in vegas 🍣✨",
+                txt: "the omakase here is unreal 🍣✨",
               },
               { x: 40, y: -4, cls: "like", txt: "\u2665 98" },
               {
                 x: 80,
                 y: 12,
                 n: "Marcus",
-                txt: "6 seats left?? someone grab me one I&rsquo;m parking rn 🏃‍♂️💨",
+                txt: "6 left?? grab me one, parking rn 💨",
               },
               {
                 x: 1,
                 y: 66,
                 n: "Lena",
-                txt: "chef said he&rsquo;s doing an off-menu course tonight only for House members 🤫",
+                txt: "off-menu course tonight, members only 🤫",
               },
               {
                 x: 79,
                 y: 72,
                 n: "Ray",
-                txt: "booked for 4, we&rsquo;re celebrating, drinks on me 🥂",
+                txt: "booked for 4, drinks on me 🥂",
               },
               { x: 44, y: 96, cls: "like violet", txt: "sold out in 9 min" },
             ],
@@ -3606,26 +3788,26 @@
                 x: 0,
                 y: 2,
                 n: "Cameron",
-                txt: "this cover story is 🔥🔥 finally someone gets what&rsquo;s actually happening downtown",
+                txt: "this cover story is 🔥 finally someone gets it",
               },
               { x: 40, y: -4, cls: "like", txt: "\u2665 502" },
               {
                 x: 80,
                 y: 12,
                 n: "Nadia",
-                txt: "sending this to my whole group chat, everyone needs to read it 📖💜",
+                txt: "sending this to the whole group chat 📖💜",
               },
               {
                 x: 1,
                 y: 66,
                 n: "Theo",
-                txt: "wait the part about the speakeasy scene?? I NEED to know where 👀🍸",
+                txt: "the speakeasy part?? I need to know where 🍸",
               },
               {
                 x: 79,
                 y: 72,
                 n: "Bex",
-                txt: "House really is the only one covering this stuff, everybody else is late",
+                txt: "House is the only one covering this 👏",
               },
               { x: 44, y: 96, cls: "like violet", txt: "shared 240 times" },
             ],
@@ -3641,26 +3823,26 @@
                 x: 0,
                 y: 2,
                 n: "Sol",
-                txt: "the backstage interview is so good, she&rsquo;s such a legend 😭👑",
+                txt: "the backstage interview 😭👑 a legend",
               },
               { x: 40, y: -4, cls: "like", txt: "\u2665 361" },
               {
                 x: 80,
                 y: 12,
                 n: "Kai",
-                txt: "just followed the page — anyone know if she&rsquo;s adding a second night?? 🙏",
+                txt: "second night?? someone say yes 🙏",
               },
               {
                 x: 1,
                 y: 66,
                 n: "Dre",
-                txt: "the way she talked about the residency… tickets when??? take my money 💸",
+                txt: "tickets when??? take my money 💸",
               },
               {
                 x: 79,
                 y: 72,
                 n: "Vee",
-                txt: "House got the exclusive again lol nobody else is even close 🎤",
+                txt: "House got the exclusive again 🎤",
               },
               { x: 44, y: 96, cls: "like violet", txt: "1.2k new follows" },
             ],
@@ -3676,14 +3858,14 @@
                 x: 0,
                 y: 2,
                 n: "Harper",
-                txt: "pre-show meetup is such a vibe, met half my crew here tbh 🥂🫶",
+                txt: "pre-show meetup is such a vibe 🥂🫶",
               },
               { x: 40, y: -4, cls: "like", txt: "\u2665 187" },
               {
                 x: 80,
                 y: 12,
                 n: "Zo",
-                txt: "bringing 3 friends, first round&rsquo;s on me, come say hi 👋🍸",
+                txt: "bringing 3 friends, first round&rsquo;s on me 🍸",
               },
               {
                 x: 1,
@@ -3711,7 +3893,9 @@
           feedIdx = 0;
           function makePop(p, j) {
             var el = document.createElement("div");
-            el.className = "feed-pop " + (p.cls || "");
+            // alternate the avatar side so bubbles don't all point the same way
+            var avRight = p.n && j % 2 === 1 ? " av-right" : "";
+            el.className = "feed-pop " + (p.cls || "") + avRight;
             if (p.n) {
               var col = AV_COLORS[(feedIdx + j) % AV_COLORS.length];
               el.innerHTML =
@@ -3868,6 +4052,7 @@
               "scrim" + (scrimClassFor(lay) ? " " + scrimClassFor(lay) : "");
           }
           elCounter.textContent = pad(i + 1) + " / " + pad(SCENES.length);
+          if (typeof highlightNav === "function") highlightNav(i);
           if (progFill)
             progFill.style.height =
               (SCENES.length > 1 ? (i / (SCENES.length - 1)) * 100 : 100) + "%";
@@ -3924,6 +4109,80 @@
 
         SCENES[0]._enterT = 0;
         renderCopy(0);
+
+        // ── jump-to-scene nav ──
+        var elNavToggle = document.getElementById("navToggle");
+        var elNav = document.getElementById("sceneNav");
+        var elNavScrim = document.getElementById("navScrim");
+        var elNavClose = document.getElementById("navClose");
+        var elNavList = document.getElementById("navList");
+        var navItems = [];
+        if (elNavList) {
+          SCENES.forEach(function (s, i) {
+            var li = document.createElement("li");
+            // strip any " · subtitle" for a clean label
+            var label = (s.eyebrow || "Scene " + (i + 1)).split(" · ")[0];
+            li.innerHTML =
+              '<span class="n">' +
+              pad(i + 1) +
+              '</span><span class="t">' +
+              label +
+              "</span>";
+            li.addEventListener("click", function () {
+              closeNav();
+              if (i !== cur) {
+                lock = true;
+                go(i);
+                setTimeout(function () {
+                  lock = false;
+                }, 1900);
+              }
+            });
+            elNavList.appendChild(li);
+            navItems.push(li);
+          });
+        }
+        function highlightNav(i) {
+          if (!navItems || !navItems.length) return;
+          navItems.forEach(function (li, di) {
+            li.classList.toggle("on", di === i);
+          });
+        }
+        function openNav() {
+          if (!elNav) return;
+          elNav.classList.add("open");
+          elNav.setAttribute("aria-hidden", "false");
+          if (elNavScrim) elNavScrim.classList.add("open");
+          if (elNavToggle) {
+            elNavToggle.setAttribute("aria-expanded", "true");
+            elNavToggle.classList.add("docked"); // spin + travel to nav edge
+          }
+          highlightNav(cur);
+        }
+        function closeNav() {
+          if (!elNav) return;
+          elNav.classList.remove("open");
+          elNav.setAttribute("aria-hidden", "true");
+          if (elNavScrim) elNavScrim.classList.remove("open");
+          if (elNavToggle) {
+            elNavToggle.setAttribute("aria-expanded", "false");
+            elNavToggle.classList.remove("docked");
+          }
+        }
+        function toggleNav() {
+          if (elNav && elNav.classList.contains("open")) closeNav();
+          else openNav();
+        }
+        // open on hover of the medallion; also keep click as a toggle
+        if (elNavToggle) {
+          elNavToggle.addEventListener("mouseenter", openNav);
+          elNavToggle.addEventListener("click", toggleNav);
+        }
+        if (elNavClose) elNavClose.addEventListener("click", closeNav);
+        if (elNavScrim) elNavScrim.addEventListener("click", closeNav);
+        window.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") closeNav();
+        });
 
         // ── navigation: wheel / keys / swipe ──
         var lock = false;
