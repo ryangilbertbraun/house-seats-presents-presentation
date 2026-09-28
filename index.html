@@ -206,8 +206,10 @@
       }
       /* funnel bars taper — keep each bar+meta row pinned to the right edge */
       .copy.layout-right .c-fstep {
-        flex-direction: row-reverse;
         justify-content: flex-start;
+      }
+      .copy.layout-right .c-fmeta {
+        text-align: right;
       }
       /* dead-center, grand statement */
       .copy.layout-center {
@@ -1288,10 +1290,20 @@
         max-width: 560px;
         text-align: left;
       }
+      .c-funnel {
+        width: 460px;
+        max-width: 100%;
+      }
       .c-fstep {
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
+        width: 100%;
+      }
+      /* the bar sits in a fixed-width TRACK so its % is consistent row to row */
+      .c-fbar-track {
+        flex: 1 1 auto;
+        min-width: 0;
       }
       .c-fbar {
         height: 34px;
@@ -1303,11 +1315,16 @@
         font-weight: 600;
         color: #fff;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .c-fmeta {
-        font-size: 11px;
+        flex: none;
+        width: 118px;
+        font-size: 10.5px;
+        line-height: 1.2;
         color: var(--fg-muted);
-        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
       }
       /* ── risk grid ── */
       .c-risk {
@@ -1729,10 +1746,48 @@
         stroke-width: 1.2;
         stroke-linecap: round;
       }
+      /* the foot connector runs from the three tiers down to the House Floor */
+      .c-umbrella .stems.foot {
+        height: 26px;
+        margin: 2px auto 0;
+      }
       .c-tiers {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 14px;
+      }
+      /* The House Floor foundation bar under all three tiers */
+      .c-floorbase {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        margin: 0 auto;
+        max-width: 84%;
+        padding: 11px 20px;
+        border-radius: 10px;
+        background: linear-gradient(
+          160deg,
+          rgba(201, 160, 255, 0.16),
+          rgba(30, 22, 38, 0.4)
+        );
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(201, 160, 255, 0.4);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+      .c-floorbase .fb-k {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--violet);
+        letter-spacing: 0.02em;
+      }
+      .c-floorbase .fb-t {
+        font-family: var(--font-sans);
+        font-size: 10.5px;
+        letter-spacing: 0.04em;
+        color: var(--fg-muted);
       }
       .c-tier {
         background: rgba(30, 22, 38, 0.5);
@@ -2743,12 +2798,12 @@
             content:
               '<div class="c-order">' +
               '<div class="c-ord"><span class="n">01</span><span class="t">The Vision</span></div>' +
-              '<div class="c-ord"><span class="n">02</span><span class="t">The House Floor</span></div>' +
-              '<div class="c-ord"><span class="n">03</span><span class="t">The Booking</span></div>' +
-              '<div class="c-ord"><span class="n">04</span><span class="t">On the Bill</span></div>' +
-              '<div class="c-ord"><span class="n">05</span><span class="t">The Four Acts</span></div>' +
+              '<div class="c-ord"><span class="n">02</span><span class="t">The Four Acts</span></div>' +
+              '<div class="c-ord"><span class="n">03</span><span class="t">On the Bill</span></div>' +
+              '<div class="c-ord"><span class="n">04</span><span class="t">The Booking</span></div>' +
+              '<div class="c-ord"><span class="n">05</span><span class="t">The House</span></div>' +
               '<div class="c-ord"><span class="n">06</span><span class="t">The Box Office</span></div>' +
-              '<div class="c-ord"><span class="n">07</span><span class="t">The House</span></div>' +
+              '<div class="c-ord"><span class="n">07</span><span class="t">The House Floor</span></div>' +
               '<div class="c-ord"><span class="n">08</span><span class="t">The Preview</span></div>' +
               '<div class="c-ord"><span class="n">09</span><span class="t">The Production Schedule</span></div>' +
               '<div class="c-ord"><span class="n">10</span><span class="t">Ticket Economics</span></div>' +
@@ -2758,7 +2813,7 @@
               '<div class="c-ord"><span class="n">14</span><span class="t">Curtain Call</span></div>' +
               "</div>",
           },
-          // 3 — THE VISION (the umbrella: one brand, three tiers) + rebrand compare
+          // 3 — THE VISION (umbrella)
           {
             kind: "vision",
             layout: "center",
@@ -2776,34 +2831,55 @@
               '<path d="M300 0 V12" /><path d="M300 12 C300 30, 100 16, 100 46" /><path d="M300 12 C300 30, 500 16, 500 46" /><path d="M300 12 V46" />' +
               "</svg>" +
               '<div class="c-tiers">' +
-              '<div class="c-tier built"><div class="shot"><img src="assets/presents-current.png" alt="House Seats Presents — elevated design" loading="lazy" /></div><div class="body"><div class="nm">Presents</div><div class="st">Built &amp; staged · the standard</div></div></div>' +
+              '<div class="c-tier built"><div class="shot"><img src="assets/presents-current.png" alt="House Seats Presents elevated design" loading="lazy" /></div><div class="body"><div class="nm">Presents</div><div class="st">Built &amp; staged · the standard</div></div></div>' +
               '<div class="c-tier"><div class="shot"><img src="assets/houseseats-current.png" alt="Current House Seats site" loading="lazy" /></div><div class="body"><div class="nm">House Seats</div><div class="st">Dated today · to elevate</div></div></div>' +
               '<div class="c-tier"><div class="shot"><img src="assets/houseeats-current.png" alt="Current House Eats site" loading="lazy" /></div><div class="body"><div class="nm">House Eats</div><div class="st">Dated today · to elevate</div></div></div>' +
               "</div>" +
+              // The House Floor connects all three from below
+              '<svg class="stems foot" viewBox="0 0 600 30" preserveAspectRatio="none" aria-hidden="true">' +
+              '<path d="M100 30 C100 14, 300 16, 300 30" /><path d="M300 30 V18" /><path d="M500 30 C500 14, 300 16, 300 30" />' +
+              "</svg>" +
+              '<div class="c-floorbase"><span class="fb-k">The House Floor</span><span class="fb-t">One community running beneath all three</span></div>' +
               "</div>",
           },
-          // 4 — THE HOUSE FLOOR (community — the connective social layer)
+          // 4 — THE FOUR ACTS (the arc)
           {
-            kind: "floor",
-            layout: "center",
-            art: "assets/scenes/housefloor.png",
-            eyebrow: "The House Floor",
-            title:
-              "Not a publisher.<br /><em>The center of the conversation.</em>",
+            kind: "arc",
+            layout: "left",
+            art: "assets/scenes/fouracts.png",
+            eyebrow: "The Four Acts",
+            title: "A production that builds to a <em>national tour</em>.",
             caption:
-              "The House Floor is the connective layer beneath every product. Profiles, messaging and identities turn an audience into a community. Presents, Seats and Eats all plug into it, so the same people and the same conversation follow you everywhere. <strong>House is the source.</strong>",
-            palette: ["#c9a0ff", "#dc2626", "#f4c56a"],
-            flourish: ["warmth", "motes"],
+              "Each act pays for the next. Presents launches first and funds the restaging of House Seats. The restaged core then carries House Eats, and the whole house travels on tour. <strong>The House Floor runs through all of it</strong>: one community, every act.",
+            palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
+            flourish: ["warmth"],
             content:
-              '<div class="c-live-feed"><div class="feed-stage" id="feedStage"></div></div>' +
-              '<div class="floor-stats">' +
-              '<div class="fs"><div class="v">14,000+</div><div class="l">In the conversation</div></div>' +
-              '<div class="fs"><div class="v gold">1.4M</div><div class="l">Messages a month</div></div>' +
-              '<div class="fs"><div class="v">Daily</div><div class="l">Members return</div></div>' +
-              '<div class="fs"><div class="v violet">Every act</div><div class="l">Plugs into the Floor</div></div>' +
+              '<div class="c-arc">' +
+              '<div class="c-act on"><span class="w">Act I · Jan \u201927</span><span class="t">Presents</span><span class="d">Launch the paid weekly membership. The first release, and the engine that funds everything after it.</span><span class="m">5,000<small>subscribers · $300k ARR</small></span></div>' +
+              '<div class="c-act"><span class="w">Act II · 2027</span><span class="t">Restage House Seats</span><span class="d">Reinvest that revenue to elevate the original House Seats site and grow the core membership.</span><span class="m">+5,000<small>members on a restaged core</small></span></div>' +
+              '<div class="c-act"><span class="w">Act III · 2027 \u2192</span><span class="t">House Eats</span><span class="d">Add the dining &amp; commerce line, turning the audience\u2019s night out into a new revenue stream.</span><span class="m">New line<small>commerce revenue</small></span></div>' +
+              '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="d">Take the proven playbook on tour, city by city, with Presents, Seats and Eats under one brand.</span><span class="m">Every city<small>the national tour</small></span></div>' +
               "</div>",
           },
-          // 5 — THE BOOKING (the goal)
+          // 5 — ON THE BILL (Presents, the product)
+          {
+            kind: "product",
+            layout: "left",
+            art: "assets/scenes/newsstand.png",
+            eyebrow: "On the Bill · Presents",
+            title: "A weekly issue worth <em>showing up for</em>.",
+            caption:
+              "House Seats Presents is the first release: a weekly editorial membership, a magazine, not a coupon book. It opens onto <strong>The House Floor</strong> from day one, with profiles, messaging and the conversation built in. Already staged and test-ready.",
+            palette: ["#dc2626", "#f4c56a", "#c9a0ff"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-poc"><span class="live">Live</span><span>Proof of concept:</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
+              '<div class="c-live">' +
+              '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
+              '<div class="win"><div class="c-load" id="pocLoad"><span class="ring"></span><span class="lbl">Loading preview…</span></div><iframe id="pocFrame" src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
+              "</div>",
+          },
+          // 6 — THE BOOKING (the goal)
           {
             kind: "booking",
             layout: "right",
@@ -2823,41 +2899,26 @@
               '<tr class="total"><td>Annualized</td><td class="n accent">$300,000</td></tr>' +
               "</tbody></table>",
           },
-          // 6 — ON THE BILL (Presents, the first release) + live POC
+          // 7 — THE HOUSE (what powers the funnel)
           {
-            kind: "product",
-            layout: "left",
-            art: "assets/scenes/newsstand.png",
-            eyebrow: "On the Bill · Presents",
-            title: "A weekly issue worth <em>showing up for</em>.",
+            kind: "funnel",
+            layout: "right",
+            art: "assets/scenes/thehouse.png",
+            eyebrow: "The House · What Powers the Funnel",
+            title:
+              "The marketing runs the funnel.<br /><em>The platform makes it work.</em>",
             caption:
-              "House Seats Presents is the first release: a weekly editorial membership, a magazine, not a coupon book. It opens onto <strong>The House Floor</strong> from day one, with profiles, messaging and the conversation built in. Already staged and test-ready.",
-            palette: ["#dc2626", "#f4c56a", "#c9a0ff"],
+              "The audience and the marketing are already in hand. This engagement is about the software behind each stage of the funnel, and the dashboard to steer it. Here is what gets built, top to bottom.",
+            palette: ["#dc2626", "#7b3fb0", "#f4c56a"],
             flourish: ["warmth"],
             content:
-              '<div class="c-poc"><span class="live">Live</span><span>Proof of concept:</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
-              '<div class="c-live">' +
-              '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
-              '<div class="win"><div class="c-load" id="pocLoad"><span class="ring"></span><span class="lbl">Loading preview…</span></div><iframe id="pocFrame" src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
-              "</div>",
-          },
-          // 7 — THE FOUR ACTS (the arc)
-          {
-            kind: "arc",
-            layout: "left",
-            art: "assets/scenes/fouracts.png",
-            eyebrow: "The Four Acts",
-            title: "A production that builds to a <em>national tour</em>.",
-            caption:
-              "Each act pays for the next. Presents launches first and funds the restaging of House Seats. The restaged core then carries House Eats, and the whole house travels on tour. <strong>The House Floor runs through all of it</strong>: one community, every act.",
-            palette: ["#dc2626", "#c9a0ff", "#f4c56a"],
-            flourish: ["warmth"],
-            content:
-              '<div class="c-arc">' +
-              '<div class="c-act on"><span class="w">Act I · Jan \u201927</span><span class="t">Presents</span><span class="d">Launch the paid weekly membership. The first release, and the engine that funds everything after it.</span><span class="m">5,000<small>subscribers · $300k ARR</small></span></div>' +
-              '<div class="c-act"><span class="w">Act II · 2027</span><span class="t">Restage House Seats</span><span class="d">Reinvest that revenue to elevate the original House Seats site and grow the core membership.</span><span class="m">+5,000<small>members on a restaged core</small></span></div>' +
-              '<div class="c-act"><span class="w">Act III · 2027 \u2192</span><span class="t">House Eats</span><span class="d">Add the dining &amp; commerce line, turning the audience\u2019s night out into a new revenue stream.</span><span class="m">New line<small>commerce revenue</small></span></div>' +
-              '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="d">Take the proven playbook on tour, city by city, with Presents, Seats and Eats under one brand.</span><span class="m">Every city<small>the national tour</small></span></div>' +
+              '<div class="c-funnel">' +
+              '<div class="c-fstep"><span class="c-fmeta">Email &amp; publishing</span><div class="c-fbar-track"><div class="c-fbar" style="width:100%;background:#7b4fb0">Reach the audience</div></div></div>' +
+              '<div class="c-fstep"><span class="c-fmeta">Landing &amp; content</span><div class="c-fbar-track"><div class="c-fbar" style="width:86%;background:#8f4a9e">Bring them to site</div></div></div>' +
+              '<div class="c-fstep"><span class="c-fmeta">Signup &amp; waitlist</span><div class="c-fbar-track"><div class="c-fbar" style="width:72%;background:#a8437e">Capture interest</div></div></div>' +
+              '<div class="c-fstep"><span class="c-fmeta">Payments &amp; accounts</span><div class="c-fbar-track"><div class="c-fbar" style="width:58%;background:#c23a55">Convert to paid</div></div></div>' +
+              '<div class="c-fstep"><span class="c-fmeta" style="color:var(--accent-hover)">The House Floor</span><div class="c-fbar-track"><div class="c-fbar" style="width:44%;background:#dc2626">Keep them</div></div></div>' +
+              '<div class="c-fstep"><span class="c-fmeta">Analytics dashboard</span><div class="c-fbar-track"><div class="c-fbar" style="width:32%;background:#7cdba8;color:#14100a">See it all</div></div></div>' +
               "</div>",
           },
           // 8 — THE BOX OFFICE (how the money compounds)
@@ -2879,29 +2940,28 @@
               '<div class="c-metric"><div class="v gold">National</div><div class="l">Brand outcome</div></div>' +
               "</div>",
           },
-          // 9 — THE HOUSE (conversion funnel)
+          // 9 — THE HOUSE FLOOR (the connecting community)
           {
-            kind: "funnel",
-            layout: "right",
-            art: "assets/scenes/thehouse.png",
-            eyebrow: "The House · What Powers the Funnel",
+            kind: "floor",
+            layout: "center",
+            art: "assets/scenes/housefloor.png",
+            eyebrow: "The House Floor",
             title:
-              "The marketing runs the funnel.<br /><em>The platform makes it work.</em>",
+              "Not a publisher.<br /><em>The center of the conversation.</em>",
             caption:
-              "The audience and the marketing are already in hand. This engagement is about the software behind each stage of the funnel, and the dashboard to steer it. Here is what gets built, top to bottom.",
-            palette: ["#dc2626", "#7b3fb0", "#f4c56a"],
-            flourish: ["warmth"],
+              "The House Floor is the connective layer beneath every product. Profiles, messaging and identities turn an audience into a community. Presents, Seats and Eats all plug into it, so the same people and the same conversation follow you everywhere. <strong>House is the source.</strong>",
+            palette: ["#c9a0ff", "#dc2626", "#f4c56a"],
+            flourish: ["warmth", "motes"],
             content:
-              '<div class="c-funnel">' +
-              '<div class="c-fstep"><div class="c-fbar" style="width:100%;background:#7b4fb0">Reach the audience</div><span class="c-fmeta">Email &amp; publishing engine</span></div>' +
-              '<div class="c-fstep"><div class="c-fbar" style="width:86%;background:#8f4a9e">Bring them to site</div><span class="c-fmeta">Landing &amp; content</span></div>' +
-              '<div class="c-fstep"><div class="c-fbar" style="width:72%;background:#a8437e">Capture interest</div><span class="c-fmeta">Signup &amp; waitlist</span></div>' +
-              '<div class="c-fstep"><div class="c-fbar" style="width:58%;background:#c23a55">Convert to paid</div><span class="c-fmeta">Payments &amp; accounts</span></div>' +
-              '<div class="c-fstep"><div class="c-fbar" style="width:44%;background:#dc2626">Keep them</div><span class="c-fmeta" style="color:var(--accent-hover)">The House Floor</span></div>' +
-              '<div class="c-fstep"><div class="c-fbar" style="width:32%;background:#7cdba8;color:#14100a">See it all</div><span class="c-fmeta">Analytics dashboard</span></div>' +
+              '<div class="c-live-feed"><div class="feed-stage" id="feedStage"></div></div>' +
+              '<div class="floor-stats">' +
+              '<div class="fs"><div class="v">14,000+</div><div class="l">In the conversation</div></div>' +
+              '<div class="fs"><div class="v gold">1.4M</div><div class="l">Messages a month</div></div>' +
+              '<div class="fs"><div class="v">Daily</div><div class="l">Members return</div></div>' +
+              '<div class="fs"><div class="v violet">Every act</div><div class="l">Plugs into the Floor</div></div>' +
               "</div>",
           },
-          // 10 — THE PREVIEW (October 25 — Work Order 1)
+          // 10 — THE PREVIEW (Oct 25 — Work Order 1)
           {
             kind: "preview",
             layout: "lower-band",
