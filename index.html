@@ -1526,6 +1526,29 @@
         color: var(--gold);
         white-space: nowrap;
       }
+      /* ── closing sign-off ── */
+      .c-signoff {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin: 30px auto 0;
+      }
+      .c-signoff .so-line {
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-weight: 700;
+        font-size: clamp(19px, 2.2vw, 26px);
+        color: var(--gold);
+        letter-spacing: 0.01em;
+      }
+      .c-signoff .so-sub {
+        font-family: var(--font-sans);
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--fg-muted);
+      }
       /* ── the ask (single focal card) ── */
       .c-ask {
         max-width: 560px;
@@ -2831,7 +2854,7 @@
               '<path d="M300 0 V12" /><path d="M300 12 C300 30, 100 16, 100 46" /><path d="M300 12 C300 30, 500 16, 500 46" /><path d="M300 12 V46" />' +
               "</svg>" +
               '<div class="c-tiers">' +
-              '<div class="c-tier built"><div class="shot"><img src="assets/presents-current.png" alt="House Seats Presents elevated design" loading="lazy" /></div><div class="body"><div class="nm">Presents</div><div class="st">Built &amp; staged · the standard</div></div></div>' +
+              '<div class="c-tier built"><div class="shot"><img src="assets/presents-current.png" alt="House Seats Presents elevated design" loading="lazy" /></div><div class="body"><div class="nm">House Presents</div><div class="st">Built &amp; staged · the standard</div></div></div>' +
               '<div class="c-tier"><div class="shot"><img src="assets/houseseats-current.png" alt="Current House Seats site" loading="lazy" /></div><div class="body"><div class="nm">House Seats</div><div class="st">Dated today · to elevate</div></div></div>' +
               '<div class="c-tier"><div class="shot"><img src="assets/houseeats-current.png" alt="Current House Eats site" loading="lazy" /></div><div class="body"><div class="nm">House Eats</div><div class="st">Dated today · to elevate</div></div></div>' +
               "</div>" +
@@ -3084,17 +3107,15 @@
             art: "assets/scenes/curtaincall.png",
             eyebrow: "Curtain Call",
             title:
-              "Raise the curtain on the preview.<br />Then <em>take it on tour</em>.",
+              "Thank you for trusting us<br /><em>with the house you built</em>.",
             caption:
-              "Stage 1 answers the question. The acts that follow build toward $25,000 MRR, $300,000 in year-one subscription revenue, and a proven playbook. Presents, House Seats and House Eats under <strong>The House Experience</strong>, ready to travel city by city.",
+              "House Seats is years of your work and a real audience&rsquo;s trust. We don&rsquo;t take that lightly. It would be a privilege to help carry it into its next act, and we&rsquo;re ready to earn that trust one stage at a time, starting with the preview.",
             palette: ["#f4c56a", "#dc2626", "#c9a0ff"],
             flourish: ["warmth", "motes"],
             content:
-              '<div class="c-metrics">' +
-              '<div class="c-metric"><div class="v accent">Oct 25</div><div class="l">The preview</div></div>' +
-              '<div class="c-metric"><div class="v">Jan 1</div><div class="l">Opening night</div></div>' +
-              '<div class="c-metric"><div class="v">$300k</div><div class="l">Year-one ARR</div></div>' +
-              '<div class="c-metric"><div class="v gold">On tour</div><div class="l">The finale</div></div>' +
+              '<div class="c-signoff">' +
+              '<span class="so-line">The curtain is ready to rise.</span>' +
+              '<span class="so-sub">Let&rsquo;s open the show together.</span>' +
               "</div>",
           },
           // 17 — SERVICES (rate-card addendum)
