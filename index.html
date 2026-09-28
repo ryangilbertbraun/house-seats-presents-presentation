@@ -1549,6 +1549,109 @@
         text-transform: uppercase;
         color: var(--fg-muted);
       }
+      /* ── the ask · three tier cards with sales points ── */
+      .c-tiers-ask {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        max-width: 760px;
+        margin: 0 auto;
+        text-align: left;
+      }
+      .c-atier {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(
+          160deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(30, 22, 38, 0.34)
+        );
+        -webkit-backdrop-filter: blur(13px) saturate(1.1);
+        backdrop-filter: blur(13px) saturate(1.1);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        padding: 16px 16px 15px;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          0 12px 32px rgba(0, 0, 0, 0.32);
+      }
+      .c-atier.rec {
+        border-color: var(--gold);
+        box-shadow:
+          inset 0 1px 0 rgba(244, 197, 106, 0.2),
+          0 0 0 1px rgba(244, 197, 106, 0.4),
+          0 16px 40px rgba(0, 0, 0, 0.4);
+      }
+      .c-atier .at-name {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--fg);
+      }
+      .c-atier .at-price {
+        font-family: var(--font-serif);
+        font-weight: 800;
+        font-size: 22px;
+        color: var(--accent-hover);
+        margin-top: 2px;
+      }
+      .c-atier.rec .at-price {
+        color: var(--gold);
+      }
+      .c-atier .at-tag {
+        align-self: flex-start;
+        font-family: var(--font-sans);
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--fg-muted);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        padding: 2px 9px;
+        margin: 9px 0 12px;
+      }
+      .c-atier.rec .at-tag {
+        color: var(--gold);
+        border-color: rgba(244, 197, 106, 0.5);
+      }
+      .c-atier .at-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .c-atier .at-list li {
+        position: relative;
+        padding-left: 15px;
+        font-family: var(--font-sans);
+        font-size: 11.5px;
+        line-height: 1.4;
+        color: var(--fg-muted);
+      }
+      .c-atier .at-list li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 6px;
+        width: 5px;
+        height: 5px;
+        transform: rotate(45deg);
+        background: var(--gold);
+        opacity: 0.7;
+      }
+      .c-atier .at-list li:first-child {
+        color: var(--fg);
+        font-weight: 600;
+      }
+      @media (max-width: 720px) {
+        .c-tiers-ask {
+          grid-template-columns: 1fr;
+        }
+      }
       /* ── the ask (single focal card) ── */
       .c-ask {
         max-width: 560px;
@@ -3086,18 +3189,32 @@
             kind: "ask",
             layout: "center",
             art: "assets/scenes/theask.png",
-            eyebrow: "The Ask",
-            title: "Approve the preview. <em>Nothing more.</em>",
+            eyebrow: "The Ask · Work Order 1",
+            title: "Approve the preview. <em>Choose the depth.</em>",
             caption:
-              "One small, fixed commitment gets the show moving. It answers the biggest question, whether the audience will convert, before any build dollars are spent.",
+              "One small, fixed commitment gets the show moving before any build dollars are spent. Three ways to run the October 25 preview, from a quick teaser to a full research production.",
             palette: ["#f4c56a", "#dc2626", "#7b3fb0"],
             flourish: ["warmth", "motes"],
             content:
-              '<div class="c-ask">' +
-              '<div class="lead">Green-light <em>Work Order 1</em>, the October 25 preview.</div>' +
-              '<div class="row"><span>Table Read <b>~$3k</b></span><span>Rehearsal <b>~$6.5k</b></span><span>Full Preview <b>~$10.5k</b></span></div>' +
-              '<div class="row"><span><b>Delivers:</b> a live single-page teaser + audience research</span></div>' +
-              '<div class="row"><span><b>Unlocks:</b> a data-backed go/no-go on the January build</span></div>' +
+              '<div class="c-tiers-ask">' +
+              '<div class="c-atier"><div class="at-name">Table Read</div><div class="at-price">~$3k</div><div class="at-tag">Fast &amp; lean</div><ul class="at-list">' +
+              "<li>Single-page teaser off the staged POC</li>" +
+              "<li>AI-assisted copy &amp; visuals</li>" +
+              "<li>Email capture + basic analytics</li>" +
+              "<li>Live by October 25</li>" +
+              "</ul></div>" +
+              '<div class="c-atier rec"><div class="at-name">Rehearsal</div><div class="at-price">~$6.5k</div><div class="at-tag">Recommended</div><ul class="at-list">' +
+              "<li>Everything in Table Read, plus:</li>" +
+              "<li>Product &amp; UX strategy on page and flow</li>" +
+              "<li>A real survey built to test the 35% belief</li>" +
+              "<li>Conversion-focused layout &amp; copy</li>" +
+              "</ul></div>" +
+              '<div class="c-atier"><div class="at-name">Full Preview</div><div class="at-price">~$10.5k</div><div class="at-tag">Highest signal</div><ul class="at-list">' +
+              "<li>Everything in Rehearsal, plus:</li>" +
+              "<li>Custom brand &amp; visual design</li>" +
+              "<li>Marketing strategy &amp; audience reach</li>" +
+              "<li>Focus-group / qualitative research</li>" +
+              "</ul></div>" +
               "</div>",
           },
           // 16 — CURTAIN CALL (closing)
