@@ -2799,12 +2799,12 @@
               '<div class="c-order">' +
               '<div class="c-ord"><span class="n">01</span><span class="t">The Vision</span></div>' +
               '<div class="c-ord"><span class="n">02</span><span class="t">The Four Acts</span></div>' +
-              '<div class="c-ord"><span class="n">03</span><span class="t">On the Bill</span></div>' +
+              '<div class="c-ord"><span class="n">03</span><span class="t">The Box Office</span></div>' +
               '<div class="c-ord"><span class="n">04</span><span class="t">The Booking</span></div>' +
               '<div class="c-ord"><span class="n">05</span><span class="t">The House</span></div>' +
-              '<div class="c-ord"><span class="n">06</span><span class="t">The Box Office</span></div>' +
-              '<div class="c-ord"><span class="n">07</span><span class="t">The House Floor</span></div>' +
-              '<div class="c-ord"><span class="n">08</span><span class="t">The Preview</span></div>' +
+              '<div class="c-ord"><span class="n">06</span><span class="t">The House Floor</span></div>' +
+              '<div class="c-ord"><span class="n">07</span><span class="t">The Preview</span></div>' +
+              '<div class="c-ord"><span class="n">08</span><span class="t">On the Bill</span></div>' +
               '<div class="c-ord"><span class="n">09</span><span class="t">The Production Schedule</span></div>' +
               '<div class="c-ord"><span class="n">10</span><span class="t">Ticket Economics</span></div>' +
               '<div class="c-ord"><span class="n">11</span><span class="t">The Work Orders</span></div>' +
@@ -2861,22 +2861,23 @@
               '<div class="c-act peak"><span class="w">Finale</span><span class="t">The Experience</span><span class="d">Take the proven playbook on tour, city by city, with Presents, Seats and Eats under one brand.</span><span class="m">Every city<small>the national tour</small></span></div>' +
               "</div>",
           },
-          // 5 — ON THE BILL (Presents, the product)
+          // 5 — THE BOX OFFICE (how the money compounds)
           {
-            kind: "product",
-            layout: "left",
-            art: "assets/scenes/newsstand.png",
-            eyebrow: "On the Bill · Presents",
-            title: "A weekly issue worth <em>showing up for</em>.",
+            kind: "boxoffice",
+            layout: "right",
+            art: "assets/scenes/compounding.png",
+            eyebrow: "The Box Office",
+            title: "How one show&rsquo;s receipts fund the <em>next act</em>.",
             caption:
-              "House Seats Presents is the first release: a weekly editorial membership, a magazine, not a coupon book. It opens onto <strong>The House Floor</strong> from day one, with profiles, messaging and the conversation built in. Already staged and test-ready.",
-            palette: ["#dc2626", "#f4c56a", "#c9a0ff"],
+              "Each act&rsquo;s receipts and audience bankroll the next. One staged investment climbs from a $300k subscription show toward a multi-line national tour. <strong>Audience is the asset.</strong>",
+            palette: ["#7b3fb0", "#dc2626", "#f4c56a"],
             flourish: ["warmth"],
             content:
-              '<div class="c-poc"><span class="live">Live</span><span>Proof of concept:</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
-              '<div class="c-live">' +
-              '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
-              '<div class="win"><div class="c-load" id="pocLoad"><span class="ring"></span><span class="lbl">Loading preview…</span></div><iframe id="pocFrame" src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
+              '<div class="c-metrics">' +
+              '<div class="c-metric"><div class="v">$300k</div><div class="l">Presents ARR, yr 1</div></div>' +
+              '<div class="c-metric"><div class="v accent">3–5×</div><div class="l">Revenue acts by yr 3</div></div>' +
+              '<div class="c-metric"><div class="v">19k+</div><div class="l">Combined audience</div></div>' +
+              '<div class="c-metric"><div class="v gold">National</div><div class="l">Brand outcome</div></div>' +
               "</div>",
           },
           // 6 — THE BOOKING (the goal)
@@ -2921,26 +2922,7 @@
               '<div class="c-fstep"><span class="c-fmeta">Analytics dashboard</span><div class="c-fbar-track"><div class="c-fbar" style="width:32%;background:#7cdba8;color:#14100a">See it all</div></div></div>' +
               "</div>",
           },
-          // 8 — THE BOX OFFICE (how the money compounds)
-          {
-            kind: "boxoffice",
-            layout: "right",
-            art: "assets/scenes/compounding.png",
-            eyebrow: "The Box Office",
-            title: "How one show&rsquo;s receipts fund the <em>next act</em>.",
-            caption:
-              "Each act&rsquo;s receipts and audience bankroll the next. One staged investment climbs from a $300k subscription show toward a multi-line national tour. <strong>Audience is the asset.</strong>",
-            palette: ["#7b3fb0", "#dc2626", "#f4c56a"],
-            flourish: ["warmth"],
-            content:
-              '<div class="c-metrics">' +
-              '<div class="c-metric"><div class="v">$300k</div><div class="l">Presents ARR, yr 1</div></div>' +
-              '<div class="c-metric"><div class="v accent">3–5×</div><div class="l">Revenue acts by yr 3</div></div>' +
-              '<div class="c-metric"><div class="v">19k+</div><div class="l">Combined audience</div></div>' +
-              '<div class="c-metric"><div class="v gold">National</div><div class="l">Brand outcome</div></div>' +
-              "</div>",
-          },
-          // 9 — THE HOUSE FLOOR (the connecting community)
+          // 8 — THE HOUSE FLOOR (the connecting community)
           {
             kind: "floor",
             layout: "center",
@@ -2961,7 +2943,7 @@
               '<div class="fs"><div class="v violet">Every act</div><div class="l">Plugs into the Floor</div></div>' +
               "</div>",
           },
-          // 10 — THE PREVIEW (Oct 25 — Work Order 1)
+          // 9 — THE PREVIEW (Oct 25 — Work Order 1)
           {
             kind: "preview",
             layout: "lower-band",
@@ -2976,6 +2958,24 @@
               '<div class="c-cards">' +
               '<div class="glass"><span class="k" style="color:var(--accent-hover)">What it does</span><p style="margin-top:8px">Seats an early audience, captures interest &amp; a waitlist, and runs the survey/research that validates the 35% conversion belief before the build.</p></div>' +
               '<div class="glass"><span class="k" style="color:var(--gold)">What we learn</span><p style="margin-top:8px">Members reached · survey starts &amp; completions · interest/waitlist conversion · email engagement · usable qualitative feedback.</p></div>' +
+              "</div>",
+          },
+          // 10 — ON THE BILL (Presents build — Work Order 2)
+          {
+            kind: "product",
+            layout: "left",
+            art: "assets/scenes/newsstand.png",
+            eyebrow: "On the Bill · Presents",
+            title: "A weekly issue worth <em>showing up for</em>.",
+            caption:
+              "House Seats Presents is the first release: a weekly editorial membership, a magazine, not a coupon book. It opens onto <strong>The House Floor</strong> from day one, with profiles, messaging and the conversation built in. Already staged and test-ready.",
+            palette: ["#dc2626", "#f4c56a", "#c9a0ff"],
+            flourish: ["warmth"],
+            content:
+              '<div class="c-poc"><span class="live">Live</span><span>Proof of concept:</span> <a href="https://house-seats-presents.vercel.app" target="_blank" rel="noopener">house-seats-presents.vercel.app</a></div>' +
+              '<div class="c-live">' +
+              '<div class="bar"><i></i><i></i><i></i><span class="url">house-seats-presents.vercel.app</span></div>' +
+              '<div class="win"><div class="c-load" id="pocLoad"><span class="ring"></span><span class="lbl">Loading preview…</span></div><iframe id="pocFrame" src="https://house-seats-presents.vercel.app" title="House Seats Presents — live proof of concept" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe></div>' +
               "</div>",
           },
           // 11 — THE PRODUCTION SCHEDULE (roadmap)
